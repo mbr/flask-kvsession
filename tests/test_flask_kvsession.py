@@ -72,6 +72,15 @@ class TestSampleApp(unittest.TestCase):
 
         self.client = self.app.test_client()
 
+    def split_cookie(self, rv):
+        cookie_data = rv.headers['Set-Cookie'].split(';', 1)[0]
+
+        for cookie in cookie_data.split('&'):
+            name, value = cookie_data.split('=')
+
+            if name == self.app.session_cookie_name:
+                return value.split('_')
+
     def test_app_setup(self):
         pass
 
@@ -90,3 +99,30 @@ class TestSampleApp(unittest.TestCase):
         self.client.get('/store-in-session/foo/bar/')
 
         self.assertNotEqual({}, self.store.d)
+
+    def test_proper_cookie_received(self):
+        rv = self.client.get('/store-in-session/bar/baz/')
+
+        sid, expires, hmac = self.split_cookie(rv)
+
+        self.assertEqual(int(expires), 0)
+
+        # check sid in store
+        key = '%s_%s' % (sid, expires)
+
+        self.assertIn(key, self.store)
+
+    def test_session_restores_properly(self):
+        raise NotImplementedError
+
+    def test_session_hmac_manipulation_caught(self):
+        raise NotImplementedError
+
+    def test_session_switches_work(self):
+        raise NotImplementedError
+
+    def test_can_delete_sessions(self):
+        raise NotImplementedError
+
+    def test_session_expires(self):
+        raise NotImplementedError
