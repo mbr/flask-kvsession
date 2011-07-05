@@ -31,6 +31,8 @@ setup(
     install_requires=[
         'Flask'
     ],
+    tests_require=tests_require,
+    test_suite='unittest2.collector',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
