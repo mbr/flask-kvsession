@@ -13,9 +13,11 @@
 
 import hmac
 
+import calendar
 from flask import current_app
 import flask
 from random import SystemRandom
+import re
 import time
 
 random_source = SystemRandom()
@@ -25,7 +27,7 @@ def generate_session_key(expires=None, bits=64):
     if None == expires:
         expires = 0
     elif not isinstance(expires, int) and not isinstance(expires, float):
-        expires = time.mktime(expires.timetuple())
+        expires = calendar.timegm(expires.utctimetuple())
 
     idbits = random_source.getrandbits(bits)
 
@@ -84,10 +86,23 @@ class Session(flask.Session):
 
 # the actual extension class
 class KVSession(object):
+    key_regex = re.compile('^[0-9a-f]+_(?P<expires>[0-9a-f]+)$')
     def __init__(self, session_kvstore, app=None):
         app.session_kvstore = session_kvstore
         if app:
             self.init_app(app)
+
+    def cleanup_sessions(self):
+        current_time = int(time.time())
+        for key in self.app.session_kvstore.keys():
+            m = self.key_regex.match(key)
+            if m:
+                # restore timestamp
+                key_expiry_time = int(m.group('expires'),16)
+
+                # remove if expired
+                if current_time >= key_expiry_time:
+                    self.app.session_kvstore.delete(key)
 
     def init_app(self, app):
         self.app = app

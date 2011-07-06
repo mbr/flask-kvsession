@@ -51,7 +51,7 @@ class TestGenerateSessionKey(unittest.TestCase):
 def create_app(store):
     app = Flask(__name__)
 
-    KVSession(store, app)
+    app.kvsession = KVSession(store, app)
 
     @app.route('/')
     def index():
@@ -250,4 +250,18 @@ class TestSampleApp(unittest.TestCase):
         self.assertEqual(s, {})
 
     def test_session_cleanup_works(self):
-        raise NotImplementedError
+        # set expiration to 1 second
+        self.app.permanent_session_lifetime = timedelta(seconds=1)
+
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/make-session-permanent/')
+
+        # assume there is a valid session, even after cleanup
+        self.assertNotEqual({}, self.store.d)
+        self.app.kvsession.cleanup_sessions()
+        self.assertNotEqual({}, self.store.d)
+
+        time.sleep(2)
+
+        self.app.kvsession.cleanup_sessions()
+        self.assertEqual({}, self.store.d)
