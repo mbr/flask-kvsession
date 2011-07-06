@@ -61,6 +61,11 @@ def create_app(store):
         session[key] = value
         return 'stored %r at %r' % (value, key)
 
+    @app.route('/delete-from-session/<key>/')
+    def delete(key):
+        del session[key]
+        return 'deleted %r' % key
+
     @app.route('/dump-session/')
     def dump():
         return json.dumps(dict(session))
@@ -153,8 +158,38 @@ class TestSampleApp(unittest.TestCase):
 
             self.assertEqual(s, {})
 
+    def test_can_change_values(self):
+        rv = self.client.get('/store-in-session/k1/value1/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value1')
+
+        rv = self.client.get('/store-in-session/k1/value2/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value2')
+
     def test_can_delete_values(self):
-        raise NotImplementedError
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/store-in-session/k2/value2/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value1')
+        self.assertEqual(s['k2'], 'value2')
+
+        rv = self.client.get('/delete-from-session/k1/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertNotIn('k1', s)
+        self.assertEqual(s['k2'], 'value2')
 
     def test_can_destroy_sessions(self):
         raise NotImplementedError
