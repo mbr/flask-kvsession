@@ -129,8 +129,29 @@ class TestSampleApp(unittest.TestCase):
         self.assertEqual(s['k1'], 'value1')
         self.assertEqual(s['k2'], 'value2')
 
-    def test_session_hmac_manipulation_caught(self):
-        raise NotImplementedError
+    def test_manipulation_caught(self):
+        rv = self.client.get('/store-in-session/k1/value1/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value1')
+
+        # now manipulate cookie
+        cookie = self.client.cookie_jar.\
+                 _cookies['localhost.local']['/']['session']
+        v_orig = cookie.value
+
+        for i in xrange(len(v_orig)):
+            broken_value = v_orig[:i] +\
+                           ('a' if v_orig[i] != 'a' else 'b') +\
+                           v_orig[i+1:]
+            cookie.value = broken_value
+
+            rv = self.client.get('/dump-session/')
+            s = json.loads(rv.data)
+
+            self.assertEqual(s, {})
 
     def test_session_switches_work(self):
         raise NotImplementedError
