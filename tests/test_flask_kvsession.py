@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
 
+from datetime import timedelta
 import json
 import sys
 
@@ -70,6 +71,11 @@ def create_app(store):
     def destroy():
         session.destroy()
         return 'session destroyed'
+
+    @app.route('/make-session-permanent/')
+    def make_permanent():
+        session.permanent = True
+        return 'made session permanent'
 
     @app.route('/dump-session/')
     def dump():
@@ -215,9 +221,33 @@ class TestSampleApp(unittest.TestCase):
 
         self.assertEqual(s, {})
 
-
     def test_session_expires(self):
-        raise NotImplementedError
+        # set expiration to 1 second
+        self.app.permanent_session_lifetime = timedelta(seconds=1)
+
+        rv = self.client.get('/store-in-session/k1/value1/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
+
+        rv = self.client.get('/make-session-permanent/')
+
+        # assert that the session has a non-zero timestamp
+        sid, expires, mac = self.split_cookie(rv)
+
+        self.assertNotEqual(0, int(expires,16))
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
+
+        # sleep two seconds
+        time.sleep(2)
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s, {})
 
     def test_session_cleanup_works(self):
         raise NotImplementedError
