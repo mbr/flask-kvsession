@@ -1,23 +1,9 @@
-.. Flask-KVSession documentation master file, created by
-   sphinx-quickstart on Mon Jul  4 14:54:57 2011.
+.. Flask-KVsession documentation master file, created by
+   sphinx-quickstart on Wed Jul  6 16:01:19 2011.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Flask-KVSession's documentation!
+Welcome to Flask-KVsession's documentation!
 ===========================================
 
-.. automodule:: flaskext.kvsession
-   :members:
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+Docs go here.
