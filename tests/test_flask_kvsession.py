@@ -19,7 +19,7 @@ from flaskext.kvsession import generate_session_key, KVSession
 
 class TestGenerateSessionKey(unittest.TestCase):
     def test_id_well_formed(self):
-        for i in xrange(0,100):
+        for i in xrange(0, 100):
             key = generate_session_key(time.time())
 
             self.assertRegexpMatches(key, r'^[0-9a-f]+_[0-9a-f]+$')
@@ -41,7 +41,7 @@ class TestGenerateSessionKey(unittest.TestCase):
     def test_ids_generated_unique(self):
         ids = set()
 
-        for i in xrange(0,10**5):
+        for i in xrange(0, 10 ** 5):
             id, timestamp = generate_session_key().split('_')
 
             self.assertNotIn(id, ids)
@@ -161,7 +161,7 @@ class TestSampleApp(unittest.TestCase):
         for i in xrange(len(v_orig)):
             broken_value = v_orig[:i] +\
                            ('a' if v_orig[i] != 'a' else 'b') +\
-                           v_orig[i+1:]
+                           v_orig[i + 1:]
             cookie.value = broken_value
 
             rv = self.client.get('/dump-session/')
@@ -236,7 +236,7 @@ class TestSampleApp(unittest.TestCase):
         # assert that the session has a non-zero timestamp
         sid, expires, mac = self.split_cookie(rv)
 
-        self.assertNotEqual(0, int(expires,16))
+        self.assertNotEqual(0, int(expires, 16))
 
         rv = self.client.get('/dump-session/')
         s = json.loads(rv.data)
