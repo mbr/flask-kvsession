@@ -33,6 +33,12 @@ def generate_session_key(expires=None, bits=64):
 
 
 class Session(flask.Session):
+    def destroy(self):
+        for key in self.keys():
+            del self[key]
+
+        current_app.session_kvstore.delete(self.__kvstore_key)
+
     def serialize(self, expires=None):
         # get session serialization
         sdata = super(Session, self).serialize(expires)
@@ -70,7 +76,10 @@ class Session(flask.Session):
                 pass
 
         # unserialize "normally"
-        return super(Session, cls).unserialize(sdata, secret_key)
+        s = super(Session, cls).unserialize(sdata, secret_key)
+        s.__kvstore_key = key
+
+        return s
 
 
 # the actual extension class

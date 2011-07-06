@@ -66,6 +66,11 @@ def create_app(store):
         del session[key]
         return 'deleted %r' % key
 
+    @app.route('/destroy-session/')
+    def destroy():
+        session.destroy()
+        return 'session destroyed'
+
     @app.route('/dump-session/')
     def dump():
         return json.dumps(dict(session))
@@ -192,7 +197,24 @@ class TestSampleApp(unittest.TestCase):
         self.assertEqual(s['k2'], 'value2')
 
     def test_can_destroy_sessions(self):
-        raise NotImplementedError
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/store-in-session/k2/value2/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value1')
+        self.assertEqual(s['k2'], 'value2')
+
+        # destroy session
+        rv = self.client.get('/destroy-session/')
+        self.assertIn('session destroyed', rv.data)
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s, {})
+
 
     def test_session_expires(self):
         raise NotImplementedError
