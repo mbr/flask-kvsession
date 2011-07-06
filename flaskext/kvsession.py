@@ -64,13 +64,13 @@ class Session(flask.Session):
         if mac.hexdigest() == mac_hexdigest:
             # mac okay, load sdata from store
             try:
-                sdata = self.store.get(key)
+                sdata = current_app.session_kvstore.get(key)
             except KeyError:
                 # someone deleted the session, leave sdata as ''
                 pass
 
         # unserialize "normally"
-        return super(Session, cls).unserialize(string, secret_key)
+        return super(Session, cls).unserialize(sdata, secret_key)
 
 
 # the actual extension class

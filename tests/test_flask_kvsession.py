@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
 
+import json
 import sys
 
 if sys.version_info < (2, 7):
@@ -60,6 +61,10 @@ def create_app(store):
         session[key] = value
         return 'stored %r at %r' % (value, key)
 
+    @app.route('/dump-session/')
+    def dump():
+        return json.dumps(dict(session))
+
     return app
 
 
@@ -113,7 +118,16 @@ class TestSampleApp(unittest.TestCase):
         self.assertIn(key, self.store)
 
     def test_session_restores_properly(self):
-        raise NotImplementedError
+        rv = self.client.get('/store-in-session/k1/value1/')
+        cookie = '_'.join(self.split_cookie(rv))
+
+        rv = self.client.get('/store-in-session/k2/value2/')
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+
+        self.assertEqual(s['k1'], 'value1')
+        self.assertEqual(s['k2'], 'value2')
 
     def test_session_hmac_manipulation_caught(self):
         raise NotImplementedError
