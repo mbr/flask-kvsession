@@ -153,11 +153,14 @@ class TestSampleApp(unittest.TestCase):
 
             self.assertEqual(s, {})
 
-    def test_session_switches_work(self):
+    def test_can_delete_values(self):
         raise NotImplementedError
 
-    def test_can_delete_sessions(self):
+    def test_can_destroy_sessions(self):
         raise NotImplementedError
 
     def test_session_expires(self):
+        raise NotImplementedError
+
+    def test_session_cleanup_works(self):
         raise NotImplementedError
