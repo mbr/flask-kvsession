@@ -1,29 +1,26 @@
-"""
-Flask-KVSession
----------------
-
-Description goes here...
-
-Links
-`````
-
-* `documentation <http://packages.python.org/Flask-KVSession>`_
-* `development version
-  <http://github.com/USERNAME/REPOSITORY/zipball/master#egg=Flask-KVSession-dev>`_
-
-"""
 from setuptools import setup
+
+if sys.version_info < (2, 7):
+    tests_require = ['unittest2']
+    test_suite = 'unittest2.collector'
+else:
+    tests_require = []
+    test_suite = 'unittest.collector'
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
 setup(
     name='Flask-KVSession',
     version='0.1',
-    url='<enter URL here>',
+    url='https://github.com/mbr',
     license='MIT',
     author='Marc Brinkmann',
-    author_email='your-email-here@example.com',
-    description='<enter short description here>',
-    long_description=__doc__,
+    author_email='git@marcbrinkmann.de',
+    description='Transparent server-side session support for flask',
+    long_description=read('README.rst'),
     packages=['flaskext'],
     namespace_packages=['flaskext'],
     zip_safe=False,

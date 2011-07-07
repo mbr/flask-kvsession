@@ -1,4 +1,4 @@
-Flask-KVSession is a drop-in replacement for Flask's signed cookie-based session management. Instead of storing data on the client, only a securely generated ID is stored on the client, which the actual session data resides on the server.
+Flask-KVSession is a drop-in replacement for `Flask <http://flask.pocoo.org>`_'s signed cookie-based session management. Instead of storing data on the client, only a securely generated ID is stored on the client, which the actual session data resides on the server.
 
 This has two major advantages:
 
