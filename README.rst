@@ -21,8 +21,11 @@ same with Flask-KVSession.
 
 Documentation
 =============
-Flask-KVSession has good unit test coverage and documentation available at
-`<http://flask-kvsession.readthedocs.org>`_.
+Flask-KVSessions includes good unit test coverage as well as
+
+* `documentation <http://flask-kvsession.readthedocs.org>`_.
+* `development version
+  <https://github.com/mbr/flask-kvsession/tarball/master#egg=Flask-KVSession>`_
 
 License
 =======
