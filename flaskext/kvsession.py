@@ -77,10 +77,24 @@ class KVSession(dict, SessionMixin):
         for k in self.keys():
             del self[k]
 
-        self.store.delete(self.sid_s)
+        if self.sid_s:
+            self.store.delete(self.sid_s)
 
         self.modified = False
         self.new = False
+
+    def regenerate(self):
+        self.modified = True
+
+        if self.sid_s:
+            # delete old session
+            self.store.delete(self.sid_s)
+
+            # remove sid_s, set modified
+            self.sid_s = None
+            self.modified = True
+
+            # save_session() will take care of saving the session now
 
 
 class KVSessionInterface(SessionInterface):
@@ -124,20 +138,19 @@ class KVSessionInterface(SessionInterface):
 
     def save_session(self, app, session, response):
         if session.modified:
-            # create a new session id
-            # we do this everytime to avoid session fixation
-            sid = SessionID(
-                self.random_source.getrandbits(app.config['SESSION_KEY_BITS']))
+            # create a new session id only if requested
+            # this makes it possible to avoid session fixation, but prevents
+            # full cookie-highjacking if used carefully
+            if not session.sid_s:
+                session.sid_s = SessionID(self.random_source.getrandbits(
+                                    app.config['SESSION_KEY_BITS'])
+                                ).serialize()
 
-            sid_s = sid.serialize()
-
-            if not session.new:
-                # remove the old session
-                self.store.delete(session.sid_s) # store session data
-            self.store.put(sid_s, json.dumps(session))
+            self.store.put(session.sid_s, json.dumps(session))
+            self.session.new = False
 
             # save sid_s in session cookie
-            cookie_data = Signer(app.secret_key).sign(sid_s)
+            cookie_data = Signer(app.secret_key).sign(session.sid_s)
 
             response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
                                 value=cookie_data,
