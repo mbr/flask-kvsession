@@ -27,7 +27,7 @@ Example use
 .. code-block:: python
 
    from kvsession.memory import DictStore
-   from flaskext.kvsession import KVSession
+   from flaskext.kvsession import KVSessionExtension
 
    # a DictStore will store everything in memory
    # other stores are more useful, like the FilesystemStore, see the simplekv
@@ -37,17 +37,17 @@ Example use
    app = Flask(__name__)
 
    # this will replace the app's session handling
-   KVSession(app, store)
+   KVSessionExtension(app, store)
 
 The snippet above will activate KVSession, from now on all session data will be
 stored in the :class:`~simplekv.KeyValueStore` supplied to the
-:class:`~flaskext.kvsession.KVSession` constructor.
+:class:`~flaskext.kvsession.KVSessionExtension` constructor.
 
 Configuration
 -------------
 The following flask configuration values are honored by
-:class:`~flaskext.kvsession.KVSession` and
-:class:`~flaskext.kvsession.Session`:
+:class:`~flaskext.kvsession.KVSessionExtension` and
+:class:`~flaskext.kvsession.KVSession`:
 
 .. tabularcolumns:: |p{6.5cm}|p{8.5cm}|
 
@@ -61,7 +61,7 @@ The following flask configuration values are honored by
                                random source by the module. Defaults to an
                                instance of :class:`random.SystemRandom`.
 ``PERMANENT_SESSION_LIFETIME`` When making a session permanent through
-                               :data:`Session.permanent`, it will live this
+                               :data:`KVSession.permanent`, it will live this
                                long (specified by a
                                :class:`~datetime.timedelta` object).
 ``SECRET_KEY``                 The Flask ``SECRET_KEY`` is used to sign session
