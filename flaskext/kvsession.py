@@ -17,6 +17,7 @@ from random import SystemRandom
 import re
 import time
 
+
 def generate_session_key(random_source, expires=None, bits=64):
     """Generates session ids.
 
@@ -43,8 +44,8 @@ def generate_session_key(random_source, expires=None, bits=64):
 
 
 class Session(flask.Session):
-    """This class actually derives from :class:`flask.Session` and overrides some
-    behavior while trying to be as transparent as possible.
+    """This class actually derives from :class:`flask.Session` and overrides
+    some behavior while trying to be as transparent as possible.
 
     The serialize and unserialize methods are overwritten and instead of
     returning a full serialization of the session data, will return a session
@@ -89,7 +90,7 @@ class Session(flask.Session):
 
     @classmethod
     def unserialize(cls, string, secret_key):
-        key, mac_hexdigest = string.rsplit('_',1)
+        key, mac_hexdigest = string.rsplit('_', 1)
 
         sdata = ''
 
@@ -119,6 +120,7 @@ class KVSession(object):
     :param app: The app to activate. If not `None`, this is essentially the
                 same as calling :meth:`init_app` later."""
     key_regex = re.compile('^[0-9a-f]+_(?P<expires>[0-9a-f]+)$')
+
     def __init__(self, session_kvstore, app=None, random_source=None):
         app.session_kvstore = session_kvstore
 
@@ -139,7 +141,7 @@ class KVSession(object):
             m = self.key_regex.match(key)
             if m:
                 # restore timestamp
-                key_expiry_time = int(m.group('expires'),16)
+                key_expiry_time = int(m.group('expires'), 16)
 
                 # remove if expired
                 if current_time >= key_expiry_time:
