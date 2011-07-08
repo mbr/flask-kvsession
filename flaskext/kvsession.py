@@ -17,12 +17,7 @@ from random import SystemRandom
 import re
 import time
 
-random_source = SystemRandom()
-"""The random source used by the module. Defaults to an instance of
-:class:`~random.SystemRandom`"""
-
-
-def generate_session_key(expires=None, bits=64):
+def generate_session_key(random_source, expires=None, bits=64):
     """Generates session ids.
 
     IDs generated are of the form of ``ID_EXPIRES``, where ``ID`` is a 64-bit
@@ -31,6 +26,8 @@ def generate_session_key(expires=None, bits=64):
 
     Both values are encoded as hexadecimal integer strings.
 
+    :param random_source: Where to get random bits from (must support the
+                          python :mod:`random` interface.
     :param expires: An integer (UNIX timestamp) or a :class:`datetime.datetime`
                     object.
     :param bits: How many random bits should be used for the ID.
@@ -78,6 +75,7 @@ class Session(flask.Session):
         # and IOErrors, which we do not want to catch here
         key = current_app.session_kvstore.put(
             key=generate_session_key(
+                current_app.config['SESSION_RANDOM_SOURCE'],
                 expires,
                 current_app.config['SESSION_KEY_BITS']
             ),
@@ -121,8 +119,9 @@ class KVSession(object):
     :param app: The app to activate. If not `None`, this is essentially the
                 same as calling :meth:`init_app` later."""
     key_regex = re.compile('^[0-9a-f]+_(?P<expires>[0-9a-f]+)$')
-    def __init__(self, session_kvstore, app=None):
+    def __init__(self, session_kvstore, app=None, random_source=None):
         app.session_kvstore = session_kvstore
+
         if app:
             self.init_app(app)
 
@@ -153,6 +152,7 @@ class KVSession(object):
         Flask-KVSession's."""
         self.app = app
         self.app.config.setdefault('SESSION_KEY_BITS', 64)
+        self.app.config.setdefault('SESSION_RANDOM_SOURCE', SystemRandom())
         self.app.open_session = self.open_session
 
     def open_session(self, request):
