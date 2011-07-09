@@ -119,8 +119,8 @@ class KVSessionInterface(SessionInterface):
 
                     if sid.has_expired(
                         app.config['PERMANENT_SESSION_LIFETIME']):
-                        return None #  the session has expired, no need to even
-                                    #  check if it exists
+                        return None  # the session has expired, no need to even
+                                     # check if it exists
 
                     # retrieve from store
                     s = KVSession(json.loads(self.store.get(sid_s)))
@@ -130,7 +130,7 @@ class KVSessionInterface(SessionInterface):
                     # session in the backend.
                     pass
             else:
-                s = KVSession() #  create an empty session
+                s = KVSession()  # create an empty session
                 s.new = True
 
             s.store = self.store
