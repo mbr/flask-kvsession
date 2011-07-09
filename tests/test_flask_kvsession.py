@@ -15,7 +15,12 @@ import time
 
 from simplekv.memory import DictStore
 from flask import Flask, session
-from flaskext.kvsession import generate_session_key, KVSession
+from flaskext.kvsession import SessionID
+
+
+class TestSessionID(unittest.TestCase):
+    def test_serialize(self):
+        sid = SessionID()
 
 
 class TestGenerateSessionKey(unittest.TestCase):
