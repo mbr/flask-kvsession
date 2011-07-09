@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import json
 from random import SystemRandom
 import sys
@@ -20,7 +20,32 @@ from flaskext.kvsession import SessionID
 
 class TestSessionID(unittest.TestCase):
     def test_serialize(self):
-        sid = SessionID()
+        t = int(time.time())
+        dt = datetime.utcfromtimestamp(t)
+        sid = SessionID(1234, dt)
+
+        self.assertEqual('%x_%x' % (1234, t), sid.serialize())
+
+    def test_automatic_created_date(self):
+        start = datetime.utcnow()
+        sid = SessionID(0)
+        end = datetime.utcnow()
+
+        self.assertTrue(start <= sid.created <= end)
+
+    def test_serialize_unserialize(self):
+        dt = datetime(2011, 7, 9, 13, 14, 15)
+        id = 59034
+
+        sid = SessionID(id, dt)
+        data = sid.serialize()
+
+        sid2 = SessionID(123)
+
+        restored_sid = sid.unserialize(data)
+
+        self.assertEqual(sid.id, restored_sid.id)
+        self.assertEqual(sid.created, restored_sid.created)
 
 
 class TestGenerateSessionKey(unittest.TestCase):

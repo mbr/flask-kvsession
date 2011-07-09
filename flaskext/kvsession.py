@@ -50,7 +50,7 @@ class SessionID(object):
             created = datetime.utcnow()
 
         self.id = id
-        self.created = None
+        self.created = created
 
     def has_expired(self, lifetime, now=None):
         now = now or datetime.utcnow()
@@ -61,9 +61,10 @@ class SessionID(object):
                           calendar.timegm(self.created.utctimetuple()))
 
     @classmethod
-    def unserialize(self, string):
+    def unserialize(cls, string):
         id_s, created_s = string.split('_')
-        return cls(int(id_s, 16), datetime.fromtimestamp(int(created_s, 16)))
+        return cls(int(id_s, 16),
+                   datetime.utcfromtimestamp(int(created_s, 16)))
 
 
 class KVSession(dict, SessionMixin):
