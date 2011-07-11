@@ -55,6 +55,17 @@ except ImportError:
 
 
 class SessionID(object):
+    """Helper class for parsing session ids.
+
+    Internally, Flask-KVSession stores session ids that are serialized as
+    ``KEY_CREATED``, where ``KEY`` is a random number (the sessions "true" id)
+    and ``CREATED`` a UNIX-timestamp of when the session was created.
+
+    :param id: An integer to be used as the session key.
+    :param created: A :class:`~datetime.datetime` instance or None. A value of
+                    None will result in :meth:`~datetime.datetime.utcnow()` to
+                    be used.
+    """
     def __init__(self, id, created=None):
         if None == created:
             created = datetime.utcnow()
@@ -63,21 +74,42 @@ class SessionID(object):
         self.created = created
 
     def has_expired(self, lifetime, now=None):
+        """Report if the session key has expired.
+
+        :param lifetime: A :class:`datetime.timedelta` that specifies the
+                         maximum age this :class:`SessionID` should be checked
+                         against.
+        :param now: If specified, use this :class:`~datetime.datetime` instance
+                         instead of :meth:`~datetime.datetime.utcnow()` as the
+                         current time.
+        """
         now = now or datetime.utcnow()
         return now > self.created + lifetime
 
     def serialize(self):
+        """Serializes to the standard form of ``KEY_CREATED``"""
         return '%x_%x' % (self.id,
                           calendar.timegm(self.created.utctimetuple()))
 
     @classmethod
     def unserialize(cls, string):
+        """Unserializes from a string.
+
+        :param string: A string created by :meth:`serialize`.
+        """
         id_s, created_s = string.split('_')
         return cls(int(id_s, 16),
                    datetime.utcfromtimestamp(int(created_s, 16)))
 
 
 class KVSession(CallbackDict, SessionMixin):
+    """Replacement session class.
+
+    Instances of this class will replace the session (and thus be available
+    through things like :attr:`flask.session`.
+
+    The session class will save data to the store only when necessary, empty
+    sessions will not be stored at all."""
     def __init__(self, initial=None):
         def _on_update(d):
             d.modified = True
@@ -104,6 +136,13 @@ class KVSession(CallbackDict, SessionMixin):
         self.new = False
 
     def regenerate(self):
+        """Generate a new session id for this session.
+
+        To avoid vulnerabilities through `session fixation attacks
+        <http://en.wikipedia.org/wiki/Session_fixation>`_, this function can be
+        called after an action like a login has taken place. The session will
+        be copied over to a new session id and the old one removed.
+        """
         self.modified = True
 
         if self.sid_s:
@@ -225,7 +264,9 @@ class KVSessionExtension(object):
         """Initialize application and KVSession.
 
         This will replace the session management of the application with
-        Flask-KVSession's."""
+        Flask-KVSession's.
+
+        :param app: The :class:`~flask.Flask` app to be initialized."""
         self.app = app
         app.config.setdefault('SESSION_KEY_BITS', 64)
         app.config.setdefault('SESSION_RANDOM_SOURCE', None)
