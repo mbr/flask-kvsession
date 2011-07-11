@@ -82,6 +82,11 @@ def create_app(store):
     def dump():
         return json.dumps(dict(session))
 
+    @app.route('/regenerate-session/')
+    def regenerate():
+        session.regenerate()
+        return 'session regenerated'
+
     return app
 
 
@@ -268,3 +273,21 @@ class TestSampleApp(unittest.TestCase):
 
         self.app.kvsession.cleanup_sessions()
         self.assertEqual({}, self.store.d)
+
+    def test_can_regenerate_session(self):
+        self.client.get('/store-in-session/k1/value1/')
+
+        self.assertEqual(1, len(self.store.d))
+        key = self.store.d.keys()[0]
+
+        # now regenerate
+        self.client.get('/regenerate-session/')
+
+        self.assertEqual(1, len(self.store.d))
+        new_key = self.store.d.keys()[0]
+
+        self.assertNotEqual(new_key, key)
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
