@@ -20,15 +20,25 @@ from random import SystemRandom
 import re
 
 from itsdangerous import Signer, BadSignature
-
+from werkzeug.datastructures import CallbackDict
 
 try:
     from flask.sessions import SessionMixin, SessionInterface
 except ImportError:
     # pre-0.8, these are replacements for the new session interface
     # see http://flask.pocoo.org/snippets/52/
+    # FIXME: this code should be made legacy and a dependency for
+    #        flask >= 0.8 added once it becomes stable
     class SessionInterface(object):
-        pass
+        def get_expiration_time(self, app, session):
+            # copied from flask 0.8 source
+            if session.permanent:
+                return datetime.utcnow() + app.permanent_session_lifetime
+
+        def get_cookie_domain(self, app):
+            # copied from flask 0.8 source
+            if app.config['SERVER_NAME'] is not None:
+                return '.' + app.config['SERVER_NAME'].rsplit(':', 1)[0]
 
     class SessionMixin(object):
         def _get_permanent(self):
@@ -67,7 +77,16 @@ class SessionID(object):
                    datetime.utcfromtimestamp(int(created_s, 16)))
 
 
-class KVSession(dict, SessionMixin):
+class KVSession(CallbackDict, SessionMixin):
+    def __init__(self, initial=None):
+        def _on_update(d):
+            d.modified = True
+
+        CallbackDict.__init__(self, initial, _on_update)
+
+        if not initial:
+            self.modified = False
+
     def destroy(self):
         """Destroys a session completely, by deleting all keys and removing it
         from the internal store immediately.
@@ -104,18 +123,19 @@ class KVSessionInterface(SessionInterface):
         self.random_source = random_source or SystemRandom()
 
     def open_session(self, app, request):
-        key = self.app.secret_key
+        key = app.secret_key
 
         if key is not None:
-            session_cookie = request.cookies.get('SESSION_COOKIE_NAME', None)
+            session_cookie = request.cookies.get(
+                app.config['SESSION_COOKIE_NAME'],
+                None
+            )
 
             if session_cookie:
-                s = Signer(secret_key)
-
                 try:
                     # restore the cookie, if it has been manipulated,
                     # we will find out here
-                    sid_s = s.unsign(session_cookie)
+                    sid_s = Signer(app.secret_key).unsign(session_cookie)
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(
@@ -129,7 +149,7 @@ class KVSessionInterface(SessionInterface):
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
                     # session in the backend.
-                    pass
+                    return None
             else:
                 s = KVSession()  # create an empty session
                 s.new = True
@@ -142,13 +162,13 @@ class KVSessionInterface(SessionInterface):
             # create a new session id only if requested
             # this makes it possible to avoid session fixation, but prevents
             # full cookie-highjacking if used carefully
-            if not session.sid_s:
+            if not hasattr(session, 'sid_s'):
                 session.sid_s = SessionID(self.random_source.getrandbits(
                                     app.config['SESSION_KEY_BITS'])
                                 ).serialize()
 
             self.store.put(session.sid_s, json.dumps(session))
-            self.session.new = False
+            session.new = False
 
             # save sid_s in session cookie
             cookie_data = Signer(app.secret_key).sign(session.sid_s)
@@ -216,5 +236,5 @@ class KVSessionExtension(object):
             app.save_session = lambda s, r: \
                 app.session_interface.save_session(app, s, r)
 
-        app.session_interface = KVSessionInterface(self.store,
+        app.session_interface = KVSessionInterface(self.session_kvstore,
                                                    self.random_source)

@@ -13,10 +13,11 @@ else:
 
 import time
 
-from simplekv.memory import DictStore
 from flask import Flask, session
-from flaskext.kvsession import SessionID
+from flaskext.kvsession import SessionID, KVSessionExtension
+from itsdangerous import Signer
 
+from simplekv.memory import DictStore
 
 class TestSessionID(unittest.TestCase):
     def test_serialize(self):
@@ -48,41 +49,10 @@ class TestSessionID(unittest.TestCase):
         self.assertEqual(sid.created, restored_sid.created)
 
 
-class TestGenerateSessionKey(unittest.TestCase):
-    def test_id_well_formed(self):
-        for i in xrange(0, 100):
-            key = generate_session_key(SystemRandom(), time.time())
-
-            self.assertRegexpMatches(key, r'^[0-9a-f]+_[0-9a-f]+$')
-
-    def test_non_expiring_id_has_timestamp_0(self):
-        key = generate_session_key(SystemRandom())
-        id, timestamp = key.split('_')
-
-        self.assertEqual(int(timestamp), 0)
-
-    def test_timestamp_set_properly(self):
-        time = 0x823aC
-
-        key = generate_session_key(SystemRandom(), expires=time)
-        id, timestamp = key.split('_')
-
-        self.assertEqual(timestamp, '823ac')
-
-    def test_ids_generated_unique(self):
-        ids = set()
-
-        for i in xrange(0, 10 ** 5):
-            id, timestamp = generate_session_key(SystemRandom()).split('_')
-
-            self.assertNotIn(id, ids)
-            ids.add(id)
-
-
 def create_app(store):
     app = Flask(__name__)
 
-    app.kvsession = KVSession(store, app)
+    app.kvsession = KVSessionExtension(store, app)
 
     @app.route('/')
     def index():
@@ -125,13 +95,15 @@ class TestSampleApp(unittest.TestCase):
         self.client = self.app.test_client()
 
     def split_cookie(self, rv):
+        signer = Signer(self.app.secret_key)
         cookie_data = rv.headers['Set-Cookie'].split(';', 1)[0]
 
         for cookie in cookie_data.split('&'):
             name, value = cookie_data.split('=')
 
             if name == self.app.session_cookie_name:
-                return value.split('_')
+                unsigned_value = signer.unsign(value)
+                return unsigned_value.split('_')
 
     def test_app_setup(self):
         pass
@@ -155,12 +127,12 @@ class TestSampleApp(unittest.TestCase):
     def test_proper_cookie_received(self):
         rv = self.client.get('/store-in-session/bar/baz/')
 
-        sid, expires, hmac = self.split_cookie(rv)
+        sid, created = self.split_cookie(rv)
 
-        self.assertEqual(int(expires), 0)
+        self.assertNotEqual(int(created, 16), 0)
 
         # check sid in store
-        key = '%s_%s' % (sid, expires)
+        key = '%s_%s' % (sid, created)
 
         self.assertIn(key, self.store)
 
@@ -265,9 +237,9 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/make-session-permanent/')
 
         # assert that the session has a non-zero timestamp
-        sid, expires, mac = self.split_cookie(rv)
+        sid, created = self.split_cookie(rv)
 
-        self.assertNotEqual(0, int(expires, 16))
+        self.assertNotEqual(0, int(created, 16))
 
         rv = self.client.get('/dump-session/')
         s = json.loads(rv.data)

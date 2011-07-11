@@ -29,7 +29,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'Flask', 'simplekv'
+        'Flask', 'simplekv', 'werkzeug'
     ],
     tests_require=tests_require,
     test_suite='unittest2.collector',
