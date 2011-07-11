@@ -120,7 +120,7 @@ class KVSession(CallbackDict, SessionMixin):
 class KVSessionInterface(SessionInterface):
     def __init__(self, store, random_source=None):
         self.store = store
-        self.random_source = random_source or SystemRandom()
+        self.random_source = random_source
 
     def open_session(self, app, request):
         key = app.secret_key
@@ -189,9 +189,8 @@ class KVSessionExtension(object):
                 same as calling :meth:`init_app` later."""
     key_regex = re.compile('^[0-9a-f]+_[0-9a-f]+$')
 
-    def __init__(self, session_kvstore, app=None, random_source=None):
+    def __init__(self, session_kvstore, app=None):
         self.session_kvstore = session_kvstore
-        self.random_source = random_source
 
         if app:
             self.init_app(app)
@@ -229,12 +228,16 @@ class KVSessionExtension(object):
         Flask-KVSession's."""
         self.app = app
         app.config.setdefault('SESSION_KEY_BITS', 64)
+        app.config.setdefault('SESSION_RANDOM_SOURCE', None)
 
         if not hasattr(app, 'session_interface'):
             app.open_session = lambda r: \
                 app.session_interface.open_session(app, r)
             app.save_session = lambda s, r: \
                 app.session_interface.save_session(app, s, r)
+
+        self.random_source = app.config['SESSION_RANDOM_SOURCE'] or\
+                             SystemRandom()
 
         app.session_interface = KVSessionInterface(self.session_kvstore,
                                                    self.random_source)
