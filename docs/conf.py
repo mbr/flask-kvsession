@@ -43,7 +43,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Flask-KVsession' copyright = u'2011, Marc Brinkmann'
+project = u'Flask-KVsession'
+copyright = u'2011, Marc Brinkmann'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
