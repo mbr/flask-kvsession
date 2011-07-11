@@ -291,3 +291,18 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/dump-session/')
         s = json.loads(rv.data)
         self.assertEqual(s['k1'], 'value1')
+
+    def test_works_without_secret_key_if_session_not_used(self):
+        self.app = create_app(self.store)
+        self.app.config['TESTING'] = True
+
+        self.client = self.app.test_client()
+        self.client.get('/')
+
+    def test_correct_error_reporting_with_no_secret_key(self):
+        self.app = create_app(self.store)
+        self.app.config['TESTING'] = True
+
+        self.client = self.app.test_client()
+        with self.assertRaises(RuntimeError):
+            self.client.get('/store-in-session/k1/value1/')
