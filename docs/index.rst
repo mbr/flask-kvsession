@@ -58,9 +58,9 @@ The following flask configuration values are honored by
                                :func:`~flaskext.kvsession.generate_session_key`
                                . Defaults to 64.
 ``SESSION_RANDOM_SOURCE``      An object supporting
-                               :func:`random.getrandbits`, used as a
-                               random source by the module. Defaults to an
-                               instance of :class:`random.SystemRandom`.
+                               :func:`random.getrandbits`, used as a random
+                               source by the module. If not set, an instance of
+                               :class:`random.SystemRandom` is used.
 ``PERMANENT_SESSION_LIFETIME`` When making a session permanent through
                                :data:`KVSession.permanent`, it will live this
                                long (specified by a
