@@ -162,7 +162,7 @@ class KVSessionInterface(SessionInterface):
             # create a new session id only if requested
             # this makes it possible to avoid session fixation, but prevents
             # full cookie-highjacking if used carefully
-            if not hasattr(session, 'sid_s'):
+            if not getattr(session, 'sid_s', None):
                 session.sid_s = SessionID(self.random_source.getrandbits(
                                     app.config['SESSION_KEY_BITS'])
                                 ).serialize()
