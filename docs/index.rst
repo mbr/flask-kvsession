@@ -14,7 +14,7 @@ This has two major advantages:
 Other things are possible with server side session that are impossible with
 clients side sessions, like inspecting and manipulating data in absence of the
 client. The drawback is that sessions need to be stored. Flask-KVSession uses
-the `simplekv <http://github.com/mbr/simplekv`_-package for storing session
+the `simplekv <http://github.com/mbr/simplekv>`_-package for storing session
 data on a variety of backends.
 
 Integration with Flask is seamless, once the extension is loaded for a Flask
