@@ -19,6 +19,7 @@ from itsdangerous import Signer
 
 from simplekv.memory import DictStore
 
+
 class TestSessionID(unittest.TestCase):
     def test_serialize(self):
         t = int(time.time())
