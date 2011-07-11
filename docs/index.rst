@@ -26,7 +26,8 @@ Example use
 -----------
 .. code-block:: python
 
-   from kvsession.memory import DictStore
+   from flask import Flask
+   from simplekv.memory import DictStore
    from flaskext.kvsession import KVSessionExtension
 
    # a DictStore will store everything in memory
@@ -37,7 +38,7 @@ Example use
    app = Flask(__name__)
 
    # this will replace the app's session handling
-   KVSessionExtension(app, store)
+   KVSessionExtension(store, app)
 
 The snippet above will activate KVSession, from now on all session data will be
 stored in the :class:`~simplekv.KeyValueStore` supplied to the
