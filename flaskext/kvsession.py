@@ -11,10 +11,11 @@
 
 import calendar
 from datetime import datetime
+from time import asctime, strptime
 try:
-    import json
-except ImportError:
     import simplejson as json
+except ImportError:
+    import json
 import hmac
 from random import SystemRandom
 import re
@@ -161,6 +162,27 @@ class KVSessionInterface(SessionInterface):
         self.store = store
         self.random_source = random_source
 
+    def __encode_datetime__(self, obj):
+        """Return an intermediate string rep of a datetime."""
+        if isinstance(obj, datetime):
+            return asctime(obj.timetuple())
+
+    def __decode_datetime__(self, obj):
+        """Return restored datetimes from the intermediate string reps of datetimes."""
+        datetime_pattern = re.compile("\d\d:\d\d:\d\d")
+        new_pairs = []
+        for k,v in obj:
+            if isinstance(v, str):
+                if datetime_pattern.search(v) is not None:
+                    v = datetime(*strptime(v)[0:6])
+            elif isinstance(v, list):
+                for n,i in enumerate(v):
+                    if isinstance(i, str):
+                        if datetime_pattern.search(i) is not None:
+                            v[n] = datetime(*strptime(i)[0:6])
+            new_pairs.append((k,v))
+        return dict(new_pairs)
+
     def open_session(self, app, request):
         key = app.secret_key
 
@@ -183,7 +205,8 @@ class KVSessionInterface(SessionInterface):
                                      # check if it exists
 
                     # retrieve from store
-                    s = KVSession(json.loads(self.store.get(sid_s)))
+                    s = KVSession(json.loads(self.store.get(sid_s),
+                                  object_pairs_hook=self.__decode_datetime__))
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
@@ -206,7 +229,8 @@ class KVSessionInterface(SessionInterface):
                                     app.config['SESSION_KEY_BITS'])
                                 ).serialize()
 
-            self.store.put(session.sid_s, json.dumps(session))
+            self.store.put(session.sid_s, json.dumps(session,
+                                                     default=self.__encode_datetime__))
             session.new = False
 
             # save sid_s in session cookie
