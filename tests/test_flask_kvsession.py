@@ -14,7 +14,7 @@ else:
 import time
 
 from flask import Flask, session
-from flaskext.kvsession import SessionID, KVSessionExtension
+from flaskext.kvsession import SessionID, KVSessionExtension, KVSession
 from itsdangerous import Signer
 
 from simplekv.memory import DictStore
@@ -97,6 +97,10 @@ def create_app(store):
     def regenerate():
         session.regenerate()
         return 'session regenerated'
+
+    @app.route('/is-kvsession/')
+    def is_kvsession():
+        return str(isinstance(session._get_current_object(), KVSession))
 
     return app
 
@@ -322,3 +326,34 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/store-datetime/')
         rv = self.client.get('/dump-datetime/')
         self.assertEqual(rv.data, '2011-08-10 15:46:00')
+
+    def test_missing_session_causes_new_empty_session(self):
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
+        self.store.d.clear()
+        rv = self.client.get('/dump-session/')
+
+        self.assertEqual(rv.data, '{}')
+
+        rv = self.client.get('/is-kvsession/')
+        self.assertEqual('True', rv.data)
+
+    def test_manipulated_session_causes_new_empty_session(self):
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
+
+        cookie = self.client.cookie_jar.\
+                 _cookies['localhost.local']['/']['session']
+        v_orig = cookie.value
+        cookie.value += 'x'
+
+        rv = self.client.get('/dump-session/')
+
+        self.assertEqual(rv.data, '{}')
+
+        rv = self.client.get('/is-kvsession/')
+        self.assertEqual('True', rv.data)
