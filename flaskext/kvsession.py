@@ -10,11 +10,11 @@
 
 
 import calendar
-from datetime import datetime
 try:
-    import json
+    import cPickle as pickle
 except ImportError:
-    import simplejson as json
+    import pickle
+from datetime import datetime
 import hmac
 from random import SystemRandom
 import re
@@ -157,6 +157,8 @@ class KVSession(CallbackDict, SessionMixin):
 
 
 class KVSessionInterface(SessionInterface):
+    serialization_method = pickle
+
     def __init__(self, store, random_source=None):
         self.store = store
         self.random_source = random_source
@@ -183,7 +185,9 @@ class KVSessionInterface(SessionInterface):
                                      # check if it exists
 
                     # retrieve from store
-                    s = KVSession(json.loads(self.store.get(sid_s)))
+                    s = KVSession(self.serialization_method.loads(
+                        self.store.get(sid_s))
+                    )
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
@@ -206,7 +210,8 @@ class KVSessionInterface(SessionInterface):
                                     app.config['SESSION_KEY_BITS'])
                                 ).serialize()
 
-            self.store.put(session.sid_s, json.dumps(session))
+            self.store.put(session.sid_s,
+                           self.serialization_method.dumps(dict(session)))
             session.new = False
 
             # save sid_s in session cookie
