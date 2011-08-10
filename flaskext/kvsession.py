@@ -192,7 +192,9 @@ class KVSessionInterface(SessionInterface):
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
                     # session in the backend.
-                    return None
+                    s = KVSession()  # silently swallow errors, instead of
+                                     # of returning a NullSession
+                    s.new = True
             else:
                 s = KVSession()  # create an empty session
                 s.new = True
