@@ -79,3 +79,13 @@ API reference
    :members:
 
 
+Changes
+-------
+Version 0.3
+~~~~~~~~~~~
+  - Use pickle insteaed of json as the serialization method.
+  - First occurence of changelog in docs.
+
+Version 0.2
+~~~~~~~~~~~
+  - Complete rewrite.
