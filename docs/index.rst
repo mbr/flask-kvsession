@@ -81,6 +81,11 @@ API reference
 
 Changes
 -------
+Version 0.3.1
+~~~~~~~~~~~~~
+  - Hotfix: Create empty KVSessions instead of NullSessions when a session is
+    invalid or missing.
+
 Version 0.3
 ~~~~~~~~~~~
   - Use pickle insteaed of json as the serialization method.
