@@ -64,6 +64,12 @@ def create_app(store):
         session[key] = value
         return 'stored %r at %r' % (value, key)
 
+    @app.route('/store-datetime/')
+    def store_datetime():
+        t = datetime(2011, 8, 10, 15, 46, 00)
+        session['datetime_key'] = t
+        return 'ok'
+
     @app.route('/delete-from-session/<key>/')
     def delete(key):
         del session[key]
@@ -82,6 +88,10 @@ def create_app(store):
     @app.route('/dump-session/')
     def dump():
         return json.dumps(dict(session))
+
+    @app.route('/dump-datetime/')
+    def dump_datetime():
+        return str(session['datetime_key'])
 
     @app.route('/regenerate-session/')
     def regenerate():
@@ -307,3 +317,8 @@ class TestSampleApp(unittest.TestCase):
         self.client = self.app.test_client()
         with self.assertRaises(RuntimeError):
             self.client.get('/store-in-session/k1/value1/')
+
+    def test_can_store_datetime(self):
+        rv = self.client.get('/store-datetime/')
+        rv = self.client.get('/dump-datetime/')
+        self.assertEqual(rv.data, '2011-08-10 15:46:00')
