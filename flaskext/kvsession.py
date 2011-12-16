@@ -119,6 +119,8 @@ class KVSession(CallbackDict, SessionMixin):
         if not initial:
             self.modified = False
 
+        self.sid_s = None
+
     def destroy(self):
         """Destroys a session completely, by deleting all keys and removing it
         from the internal store immediately.
