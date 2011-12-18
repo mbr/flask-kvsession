@@ -119,6 +119,8 @@ class KVSession(CallbackDict, SessionMixin):
         if not initial:
             self.modified = False
 
+        # this allows us to destroy even uninitialized sessions quietly
+        # without error.
         self.sid_s = None
 
     def destroy(self):
