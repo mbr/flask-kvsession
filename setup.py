@@ -5,10 +5,8 @@ from setuptools import setup
 
 if sys.version_info < (2, 7):
     tests_require = ['unittest2']
-    test_suite = 'unittest2.collector'
 else:
     tests_require = []
-    test_suite = 'unittest.collector'
 
 
 def read(fname):
@@ -32,7 +30,7 @@ setup(
         'Flask', 'simplekv', 'werkzeug', 'itsdangerous'
     ],
     tests_require=tests_require,
-    test_suite='unittest2.collector',
+    test_suite='tests',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
