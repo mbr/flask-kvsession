@@ -27,13 +27,12 @@ Example use
 .. code-block:: python
 
    from flask import Flask
-   from simplekv.memory import DictStore
+   from simplekv.fs import FilesystemStore
    from flaskext.kvsession import KVSessionExtension
 
-   # a DictStore will store everything in memory
-   # other stores are more useful, like the FilesystemStore, see the simplekv
-   # documentation for details
-   store = DictStore()
+   # The process running Flask needs write access to this directory:
+   sessions_directory = '/tmp/flask-sessions'
+   store = FilesystemStore(sessions_directory)
 
    app = Flask(__name__)
 
