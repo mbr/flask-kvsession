@@ -354,3 +354,23 @@ class TestSampleApp(unittest.TestCase):
 
         rv = self.client.get('/is-kvsession/')
         self.assertEqual('True', rv.data)
+
+
+# the code below should, in theory, trigger the problem of regenerating a
+# session before it has been created, however, it doesn't
+class TestFirstRequestRegenerate(unittest.TestCase):
+    def test_first_request(self):
+        store = DictStore()
+
+        app = Flask(__name__)
+        app.config['SECRET_KEY'] = 'topsecret'
+
+        KVSessionExtension(store, app)
+
+        @app.route('/')
+        def index():
+            session.regenerate()
+            return 'OK'
+
+        client = app.test_client()
+        client.get('/')

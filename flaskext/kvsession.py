@@ -145,7 +145,7 @@ class KVSession(CallbackDict, SessionMixin):
         """
         self.modified = True
 
-        if self.sid_s:
+        if getattr(self, 'sid_s', None):
             # delete old session
             self.store.delete(self.sid_s)
 
