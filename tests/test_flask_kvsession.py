@@ -3,7 +3,6 @@
 
 from datetime import timedelta, datetime
 import json
-from random import SystemRandom
 import sys
 
 if sys.version_info < (2, 7):
@@ -42,7 +41,7 @@ class TestSessionID(unittest.TestCase):
         sid = SessionID(id, dt)
         data = sid.serialize()
 
-        sid2 = SessionID(123)
+        SessionID(123)
 
         restored_sid = sid.unserialize(data)
 
@@ -134,8 +133,8 @@ class TestSampleApp(unittest.TestCase):
         self.assertIn('move along', rv.data)
 
     def test_no_session_usage_uses_no_storage(self):
-        rv = self.client.get('/')
-        rv2 = self.client.get('/')
+        self.client.get('/')
+        self.client.get('/')
 
         self.assertEqual({}, self.store.d)
 
@@ -158,7 +157,6 @@ class TestSampleApp(unittest.TestCase):
 
     def test_session_restores_properly(self):
         rv = self.client.get('/store-in-session/k1/value1/')
-        cookie = '_'.join(self.split_cookie(rv))
 
         rv = self.client.get('/store-in-session/k2/value2/')
 
@@ -276,8 +274,8 @@ class TestSampleApp(unittest.TestCase):
         # set expiration to 1 second
         self.app.permanent_session_lifetime = timedelta(seconds=1)
 
-        rv = self.client.get('/store-in-session/k1/value1/')
-        rv = self.client.get('/make-session-permanent/')
+        self.client.get('/store-in-session/k1/value1/')
+        self.client.get('/make-session-permanent/')
 
         # assume there is a valid session, even after cleanup
         self.assertNotEqual({}, self.store.d)
@@ -348,7 +346,6 @@ class TestSampleApp(unittest.TestCase):
 
         cookie = self.client.cookie_jar.\
                  _cookies['localhost.local']['/']['session']
-        v_orig = cookie.value
         cookie.value += 'x'
 
         rv = self.client.get('/dump-session/')
