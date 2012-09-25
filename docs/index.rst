@@ -80,6 +80,12 @@ API reference
 
 Changes
 -------
+
+Version 0.3.2
+~~~~~~~~~~~~~
+  - Hotfix: Calling session.regenerate() on the first request should no longer
+    cause an exception.
+
 Version 0.3.1
 ~~~~~~~~~~~~~
   - Hotfix: Create empty KVSessions instead of NullSessions when a session is
