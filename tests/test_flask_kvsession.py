@@ -128,6 +128,10 @@ class TestSampleApp(unittest.TestCase):
                 unsigned_value = signer.unsign(value)
                 return unsigned_value.split('_')
 
+    def get_session_cookie(self):
+        return self.client.cookie_jar.\
+                 _cookies['localhost.local']['/']['session']
+
     def test_app_setup(self):
         pass
 
@@ -179,8 +183,7 @@ class TestSampleApp(unittest.TestCase):
         self.assertEqual(s['k1'], 'value1')
 
         # now manipulate cookie
-        cookie = self.client.cookie_jar.\
-                 _cookies['localhost.local']['/']['session']
+        cookie = self.get_session_cookie()
         v_orig = cookie.value
 
         for i in xrange(len(v_orig)):
@@ -348,8 +351,7 @@ class TestSampleApp(unittest.TestCase):
         s = json.loads(rv.data)
         self.assertEqual(s['k1'], 'value1')
 
-        cookie = self.client.cookie_jar.\
-                 _cookies['localhost.local']['/']['session']
+        cookie = self.get_session_cookie()
         cookie.value += 'x'
 
         rv = self.client.get('/dump-session/')
