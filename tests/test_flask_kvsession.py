@@ -385,6 +385,15 @@ class TestSampleApp(unittest.TestCase):
         s = json.loads(rv.data)
         self.assertEqual(s, {})
 
+    def test_expired_made_permanent_causes_no_exception(self):
+        self.app.permanent_session_lifetime = timedelta(seconds=1)
+
+        rv = self.client.get('/store-in-session/k1/value1/')
+
+        # sleep two seconds
+        time.sleep(2)
+        rv = self.client.get('/make-session-permanent/')
+
 
 # the code below should, in theory, trigger the problem of regenerating a
 # session before it has been created, however, it doesn't

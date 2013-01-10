@@ -181,8 +181,12 @@ class KVSessionInterface(SessionInterface):
 
                     if sid.has_expired(
                         app.config['PERMANENT_SESSION_LIFETIME']):
-                        return None  # the session has expired, no need to even
-                                     # check if it exists
+                        #return None  # the session has expired, no need to
+                                      # check if it exists
+                        # we reach this point if a "non-permanent" session has
+                        # expired, but is made permanent. silently ignore the
+                        # error with a new session
+                        raise KeyError
 
                     # retrieve from store
                     s = KVSession(self.serialization_method.loads(
