@@ -101,6 +101,10 @@ def create_app(store):
     def is_kvsession():
         return str(isinstance(session._get_current_object(), KVSession))
 
+    @app.route('/is-new-session/')
+    def is_new_session():
+        return str(session.new)
+
     return app
 
 
@@ -354,6 +358,32 @@ class TestSampleApp(unittest.TestCase):
 
         rv = self.client.get('/is-kvsession/')
         self.assertEqual('True', rv.data)
+
+    def test_expired_session_causes_new_empty_session(self):
+        self.app.permanent_session_lifetime = timedelta(seconds=1)
+
+        rv = self.client.get('/store-in-session/k1/value1/')
+        rv = self.client.get('/make-session-permanent/')
+
+        # assert that the session has a non-zero timestamp
+        sid, created = self.split_cookie(rv)
+
+        self.assertNotEqual(0, int(created, 16))
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s['k1'], 'value1')
+
+        # sleep two seconds
+        time.sleep(2)
+
+        # we should have a new session now
+        rv = self.client.get('/is-new-session/')
+        self.assertEqual(str(True), rv.data)
+
+        rv = self.client.get('/dump-session/')
+        s = json.loads(rv.data)
+        self.assertEqual(s, {})
 
 
 # the code below should, in theory, trigger the problem of regenerating a
