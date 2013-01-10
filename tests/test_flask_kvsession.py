@@ -396,6 +396,19 @@ class TestSampleApp(unittest.TestCase):
         time.sleep(2)
         rv = self.client.get('/make-session-permanent/')
 
+    def test_permanent_session_cookies_are_permanent(self):
+        rv = self.client.get('/store-in-session/k1/value1/')
+
+        sid, created = self.split_cookie(rv)
+
+        # session cookie
+        self.assertIsNone(self.get_session_cookie().expires)
+
+        rv = self.client.get('/make-session-permanent/')
+
+        # now it needs to be permanent
+        self.assertIsNotNone(self.get_session_cookie().expires)
+
 
 # the code below should, in theory, trigger the problem of regenerating a
 # session before it has been created, however, it doesn't
