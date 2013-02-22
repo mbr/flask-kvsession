@@ -27,12 +27,13 @@ Example use
 .. code-block:: python
 
    from flask import Flask
-   from simplekv.fs import FilesystemStore
    from flaskext.kvsession import KVSessionExtension
 
+   import redis
+   from simplekv.memory.redisstore import RedisStore
+
    # The process running Flask needs write access to this directory:
-   sessions_directory = '/tmp/flask-sessions'
-   store = FilesystemStore(sessions_directory)
+   store = RedisStore(redis.StrictRedis())
 
    app = Flask(__name__)
 
