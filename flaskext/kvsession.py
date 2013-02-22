@@ -22,36 +22,7 @@ import re
 from itsdangerous import Signer, BadSignature
 from werkzeug.datastructures import CallbackDict
 
-try:
-    from flask.sessions import SessionMixin, SessionInterface
-except ImportError:
-    # pre-0.8, these are replacements for the new session interface
-    # see http://flask.pocoo.org/snippets/52/
-    # FIXME: this code should be made legacy and a dependency for
-    #        flask >= 0.8 added once it becomes stable
-    class SessionInterface(object):
-        def get_expiration_time(self, app, session):
-            # copied from flask 0.8 source
-            if session.permanent:
-                return datetime.utcnow() + app.permanent_session_lifetime
-
-        def get_cookie_domain(self, app):
-            # copied from flask 0.8 source
-            if app.config['SERVER_NAME'] is not None:
-                return '.' + app.config['SERVER_NAME'].rsplit(':', 1)[0]
-
-    class SessionMixin(object):
-        def _get_permanent(self):
-            return self.get('_permanent', False)
-
-        def _set_permanent(self, value):
-            self['_permanent'] = bool(value)
-
-        permanent = property(_get_permanent, _set_permanent)
-        del _get_permanent, _set_permanent
-
-        new = False
-        modified = True
+from flask.sessions import SessionMixin, SessionInterface
 
 
 class SessionID(object):
@@ -281,12 +252,6 @@ class KVSessionExtension(object):
         self.app = app
         app.config.setdefault('SESSION_KEY_BITS', 64)
         app.config.setdefault('SESSION_RANDOM_SOURCE', None)
-
-        if not hasattr(app, 'session_interface'):
-            app.open_session = lambda r: \
-                app.session_interface.open_session(app, r)
-            app.save_session = lambda s, r: \
-                app.session_interface.save_session(app, s, r)
 
         self.random_source = app.config['SESSION_RANDOM_SOURCE'] or\
                              SystemRandom()

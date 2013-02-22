@@ -81,6 +81,11 @@ API reference
 Changes
 -------
 
+Version 0.4
+~~~~~~~~~~~
+  - Now requires Flask version >= 0.8, obsoleting some legacy version
+    workarounds.
+
 Version 0.3.2
 ~~~~~~~~~~~~~
   - Hotfix: Calling session.regenerate() on the first request should no longer

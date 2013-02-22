@@ -27,7 +27,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'Flask', 'simplekv', 'werkzeug', 'itsdangerous'
+        'Flask>=0.8', 'simplekv', 'werkzeug', 'itsdangerous'
     ],
     tests_require=tests_require,
     test_suite='tests',
