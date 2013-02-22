@@ -22,6 +22,7 @@ import re
 from itsdangerous import Signer, BadSignature
 from werkzeug.datastructures import CallbackDict
 
+from flask import current_app
 from flask.sessions import SessionMixin, SessionInterface
 
 
@@ -101,7 +102,7 @@ class KVSession(CallbackDict, SessionMixin):
             del self[k]
 
         if self.sid_s:
-            self.store.delete(self.sid_s)
+            current_app.kvsession_store.delete(self.sid_s)
 
         self.modified = False
         self.new = False
@@ -118,7 +119,7 @@ class KVSession(CallbackDict, SessionMixin):
 
         if getattr(self, 'sid_s', None):
             # delete old session
-            self.store.delete(self.sid_s)
+            current_app.kvsession_store.delete(self.sid_s)
 
             # remove sid_s, set modified
             self.sid_s = None
@@ -129,10 +130,6 @@ class KVSession(CallbackDict, SessionMixin):
 
 class KVSessionInterface(SessionInterface):
     serialization_method = pickle
-
-    def __init__(self, store, random_source=None):
-        self.store = store
-        self.random_source = random_source
 
     def open_session(self, app, request):
         key = app.secret_key
@@ -161,7 +158,7 @@ class KVSessionInterface(SessionInterface):
 
                     # retrieve from store
                     s = KVSession(self.serialization_method.loads(
-                        self.store.get(sid_s))
+                        current_app.kvsession_store.get(sid_s))
                     )
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
@@ -174,7 +171,6 @@ class KVSessionInterface(SessionInterface):
                 s = KVSession()  # create an empty session
                 s.new = True
 
-            s.store = self.store
             return s
 
     def save_session(self, app, session, response):
@@ -183,11 +179,13 @@ class KVSessionInterface(SessionInterface):
             # this makes it possible to avoid session fixation, but prevents
             # full cookie-highjacking if used carefully
             if not getattr(session, 'sid_s', None):
-                session.sid_s = SessionID(self.random_source.getrandbits(
-                                    app.config['SESSION_KEY_BITS'])
-                                ).serialize()
+                session.sid_s = SessionID(
+                    current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
+                        app.config['SESSION_KEY_BITS']
+                    )
+                ).serialize()
 
-            self.store.put(session.sid_s,
+            current_app.kvsession_store.put(session.sid_s,
                            self.serialization_method.dumps(dict(session)))
             session.new = False
 
@@ -210,13 +208,13 @@ class KVSessionExtension(object):
                 same as calling :meth:`init_app` later."""
     key_regex = re.compile('^[0-9a-f]+_[0-9a-f]+$')
 
-    def __init__(self, session_kvstore, app=None):
-        self.session_kvstore = session_kvstore
+    def __init__(self, session_kvstore=None, app=None):
+        self.default_kvstore = session_kvstore
 
-        if app:
+        if app and session_kvstore:
             self.init_app(app)
 
-    def cleanup_sessions(self):
+    def cleanup_sessions(self, app=None):
         """Removes all expired session from the store.
 
         Periodically, this function should be called to remove sessions from
@@ -227,8 +225,14 @@ class KVSessionExtension(object):
         ``PERMANENT_SESSION_LIFETIME`` and if so, removes them.
 
         Note that no distinction is made between non-permanent and permanent
-        sessions."""
-        for key in self.session_kvstore.keys():
+        sessions.
+
+        :param app: The app whose sessions should be cleaned up. If ``None``,
+                    uses :py:attr:`flask.current_app`."""
+
+        if not app:
+            app = current_app
+        for key in app.kvsession_store.keys():
             m = self.key_regex.match(key)
             now = datetime.utcnow()
             if m:
@@ -237,24 +241,27 @@ class KVSessionExtension(object):
 
                 # remove if expired
                 if sid.has_expired(
-                    self.app.config['PERMANENT_SESSION_LIFETIME'],
+                    app.config['PERMANENT_SESSION_LIFETIME'],
                     now
                 ):
-                    self.session_kvstore.delete(key)
+                    app.kvsession_store.delete(key)
 
-    def init_app(self, app):
+    def init_app(self, app, session_kvstore=None):
         """Initialize application and KVSession.
 
         This will replace the session management of the application with
         Flask-KVSession's.
 
         :param app: The :class:`~flask.Flask` app to be initialized."""
-        self.app = app
         app.config.setdefault('SESSION_KEY_BITS', 64)
-        app.config.setdefault('SESSION_RANDOM_SOURCE', None)
+        app.config.setdefault('SESSION_RANDOM_SOURCE', SystemRandom())
 
-        self.random_source = app.config['SESSION_RANDOM_SOURCE'] or\
-                             SystemRandom()
+        if not session_kvstore and not self.default_kvstore:
+            raise ValueError('Must supply session_kvstore either on '
+                             'construction or init_app().')
 
-        app.session_interface = KVSessionInterface(self.session_kvstore,
-                                                   self.random_source)
+        # set store on app, either use default
+        # or supplied argument
+        app.kvsession_store = session_kvstore or self.default_kvstore
+
+        app.session_interface = KVSessionInterface()

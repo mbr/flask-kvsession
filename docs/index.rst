@@ -58,8 +58,8 @@ The following flask configuration values are honored by
                                . Defaults to 64.
 ``SESSION_RANDOM_SOURCE``      An object supporting
                                :func:`random.getrandbits`, used as a random
-                               source by the module. If not set, an instance of
-                               :class:`random.SystemRandom` is used.
+                               source by the module. Defaults to an instance of
+                               :class:`random.SystemRandom`.
 ``PERMANENT_SESSION_LIFETIME`` When making a session permanent through
                                :data:`KVSession.permanent`, it will live this
                                long (specified by a
@@ -83,6 +83,12 @@ Changes
 
 Version 0.4
 ~~~~~~~~~~~
+  - No context is store in the KVSessionExtension anymore. Instead, all data
+    (including a refence to the actual store) are attached to the application.
+
+    This means that a single KVSessionExtension can be used with multiple apps,
+    if so desired, each with its own store.
+
   - Now requires Flask version >= 0.8, obsoleting some legacy version
     workarounds.
 

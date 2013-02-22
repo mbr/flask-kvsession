@@ -286,12 +286,12 @@ class TestSampleApp(unittest.TestCase):
 
         # assume there is a valid session, even after cleanup
         self.assertNotEqual({}, self.store.d)
-        self.app.kvsession.cleanup_sessions()
+        self.app.kvsession.cleanup_sessions(self.app)
         self.assertNotEqual({}, self.store.d)
 
         time.sleep(2)
 
-        self.app.kvsession.cleanup_sessions()
+        self.app.kvsession.cleanup_sessions(self.app)
         self.assertEqual({}, self.store.d)
 
     def test_can_regenerate_session(self):
@@ -408,6 +408,26 @@ class TestSampleApp(unittest.TestCase):
 
         # now it needs to be permanent
         self.assertIsNotNone(self.get_session_cookie().expires)
+
+    def test_new_delayed_construction(self):
+        app = Flask(__name__)
+
+        ext = KVSessionExtension()
+
+        with self.assertRaises(ValueError):
+            ext.init_app(app)
+
+        ext.init_app(app, self.store)
+
+        self.assertIs(self.store, app.kvsession_store)
+
+    def test_new_delayed_construction_with_default(self):
+        app = Flask(__name__)
+
+        ext = KVSessionExtension(self.store)
+        ext.init_app(app)
+
+        self.assertIs(self.store, app.kvsession_store)
 
 
 # the code below should, in theory, trigger the problem of regenerating a
