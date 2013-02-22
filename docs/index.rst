@@ -85,7 +85,7 @@ Changes
 Version 0.4
 ~~~~~~~~~~~
   - No context is stored in the KVSessionExtension anymore. Instead, all data
-    (including a refence to the actual store) are attached to the application.
+    (including a refence to the actual store) is attached to the application.
 
     This means that a single KVSessionExtension can be used with multiple apps,
     if so desired, each with its own store.
