@@ -180,7 +180,7 @@ class KVSessionInterface(SessionInterface):
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(
-                        app.config['PERMANENT_SESSION_LIFETIME']):
+                            app.config['PERMANENT_SESSION_LIFETIME']):
                         #return None  # the session has expired, no need to
                                       # check if it exists
                         # we reach this point if a "non-permanent" session has
@@ -213,8 +213,7 @@ class KVSessionInterface(SessionInterface):
             # full cookie-highjacking if used carefully
             if not getattr(session, 'sid_s', None):
                 session.sid_s = SessionID(self.random_source.getrandbits(
-                                    app.config['SESSION_KEY_BITS'])
-                                ).serialize()
+                    app.config['SESSION_KEY_BITS'])).serialize()
 
             self.store.put(session.sid_s,
                            self.serialization_method.dumps(dict(session)))
@@ -234,12 +233,12 @@ class KVSessionExtension(object):
 
     :param session_kvstore: An object supporting the
                             `simplekv.KeyValueStore` interface that session
-                            data will be store in.
+                            data will be stored in.
     :param app: The app to activate. If not `None`, this is essentially the
                 same as calling :meth:`init_app` later."""
     key_regex = re.compile('^[0-9a-f]+_[0-9a-f]+$')
 
-    def __init__(self, session_kvstore, app=None):
+    def __init__(self, session_kvstore=None, app=None):
         self.session_kvstore = session_kvstore
 
         if app:
@@ -271,13 +270,23 @@ class KVSessionExtension(object):
                 ):
                     self.session_kvstore.delete(key)
 
-    def init_app(self, app):
+    def init_app(self, app, session_kvstore=None):
         """Initialize application and KVSession.
 
         This will replace the session management of the application with
         Flask-KVSession's.
 
-        :param app: The :class:`~flask.Flask` app to be initialized."""
+        :param app: The :class:`~flask.Flask` app to be initialized.
+        :param session_kvstore: An object supporting the
+                                `simplekv.KeyValueStore`interface that session
+                                data will stored in."""
+
+        if self.session_kvstore is None:
+            if session_kvstore is None:
+                raise ValueError('the session_kvstore is not defined')
+            else:
+                self.session_kvstore = session_kvstore
+
         self.app = app
         app.config.setdefault('SESSION_KEY_BITS', 64)
         app.config.setdefault('SESSION_RANDOM_SOURCE', None)
@@ -289,7 +298,7 @@ class KVSessionExtension(object):
                 app.session_interface.save_session(app, s, r)
 
         self.random_source = app.config['SESSION_RANDOM_SOURCE'] or\
-                             SystemRandom()
+            SystemRandom()
 
         app.session_interface = KVSessionInterface(self.session_kvstore,
                                                    self.random_source)
