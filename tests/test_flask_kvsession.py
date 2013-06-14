@@ -429,6 +429,49 @@ class TestSampleApp(unittest.TestCase):
 
         self.assertIs(self.store, app.kvsession_store)
 
+class TestCookieFlags(unittest.TestCase):
+    def setUp(self):
+        self.store = DictStore()
+        self.app = create_app(self.store)
+        self.app.config['TESTING'] = True
+        self.app.config['SECRET_KEY'] = 'devkey'
+    
+    def get_session_cookie(self, client):
+        return client.cookie_jar._cookies['localhost.local']['/']['session']
+
+    def test_secure_false(self):
+        self.app.config['SESSION_COOKIE_SECURE'] = False
+        client = self.app.test_client()
+
+        client.get('/store-in-session/k1/value1/')
+        cookie = self.get_session_cookie(client)
+        self.assertEqual(cookie.secure, False)
+
+    def test_secure_true(self):
+        self.app.config['SESSION_COOKIE_SECURE'] = True
+        client = self.app.test_client()
+
+        client.get('/store-in-session/k1/value1/')
+        cookie = self.get_session_cookie(client)
+        self.assertEqual(cookie.secure, True)
+
+    def test_httponly_false(self):
+        self.app.config['SESSION_COOKIE_HTTPONLY'] = False
+        client = self.app.test_client()
+
+        client.get('/store-in-session/k1/value1/')
+        cookie = self.get_session_cookie(client)
+        self.assertEqual(cookie.has_nonstandard_attr('HttpOnly'), False)
+
+    def test_httponly_true(self):
+        self.app.config['SESSION_COOKIE_HTTPONLY'] = True
+        client = self.app.test_client()
+
+        client.get('/store-in-session/k1/value1/')
+        cookie = self.get_session_cookie(client)
+        self.assertEqual(cookie.has_nonstandard_attr('HttpOnly'), True)
+        
+
 
 # the code below should, in theory, trigger the problem of regenerating a
 # session before it has been created, however, it doesn't
