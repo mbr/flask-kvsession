@@ -13,7 +13,7 @@ else:
 import time
 
 from flask import Flask, session
-from flaskext.kvsession import SessionID, KVSessionExtension, KVSession
+from flask.ext.kvsession import SessionID, KVSessionExtension, KVSession
 from itsdangerous import Signer
 
 from simplekv.memory import DictStore
@@ -435,7 +435,7 @@ class TestCookieFlags(unittest.TestCase):
         self.app = create_app(self.store)
         self.app.config['TESTING'] = True
         self.app.config['SECRET_KEY'] = 'devkey'
-    
+
     def get_session_cookie(self, client):
         return client.cookie_jar._cookies['localhost.local']['/']['session']
 
@@ -470,7 +470,7 @@ class TestCookieFlags(unittest.TestCase):
         client.get('/store-in-session/k1/value1/')
         cookie = self.get_session_cookie(client)
         self.assertEqual(cookie.has_nonstandard_attr('HttpOnly'), True)
-        
+
 
 
 # the code below should, in theory, trigger the problem of regenerating a
