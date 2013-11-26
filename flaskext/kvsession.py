@@ -130,6 +130,7 @@ class KVSession(CallbackDict, SessionMixin):
 
 class KVSessionInterface(SessionInterface):
     serialization_method = pickle
+    session_class = KVSession
 
     def open_session(self, app, request):
         key = app.secret_key
@@ -157,18 +158,20 @@ class KVSessionInterface(SessionInterface):
                         raise KeyError
 
                     # retrieve from store
-                    s = KVSession(self.serialization_method.loads(
+                    s = self.session_class(self.serialization_method.loads(
                         current_app.kvsession_store.get(sid_s))
                     )
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
                     # session in the backend.
-                    s = KVSession()  # silently swallow errors, instead of
-                                     # of returning a NullSession
+
+                    # silently swallow errors, instead of of returning a
+                    # NullSession
+                    s = self.session_class()
                     s.new = True
             else:
-                s = KVSession()  # create an empty session
+                s = self.session_class()  # create an empty session
                 s.new = True
 
             return s
