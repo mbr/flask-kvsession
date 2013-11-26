@@ -22,8 +22,7 @@ setup(
     author_email='git@marcbrinkmann.de',
     description='Transparent server-side session support for flask',
     long_description=read('README.rst'),
-    packages=['flaskext', 'tests'],
-    namespace_packages=['flaskext'],
+    py_modules=['flask_kvsession'],
     zip_safe=False,
     platforms='any',
     install_requires=[
