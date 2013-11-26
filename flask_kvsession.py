@@ -15,7 +15,6 @@ try:
 except ImportError:
     import pickle
 from datetime import datetime
-import hmac
 from random import SystemRandom
 import re
 
