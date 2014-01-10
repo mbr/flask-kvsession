@@ -100,7 +100,7 @@ class KVSession(CallbackDict, SessionMixin):
         for k in self.keys():
             del self[k]
 
-        if self.sid_s:
+        if getattr(self, 'sid_s', None):
             current_app.kvsession_store.delete(self.sid_s)
 
         self.modified = False
