@@ -20,13 +20,6 @@ from simplekv.memory import DictStore
 
 
 class TestSessionID(unittest.TestCase):
-    def test_serialize(self):
-        t = int(time.time())
-        dt = datetime.utcfromtimestamp(t)
-        sid = SessionID(1234, dt)
-
-        self.assertEqual('%x_%x' % (1234, t), sid.serialize())
-
     def test_automatic_created_date(self):
         start = datetime.utcnow()
         sid = SessionID(0)
@@ -34,19 +27,6 @@ class TestSessionID(unittest.TestCase):
 
         self.assertTrue(start <= sid.created <= end)
 
-    def test_serialize_unserialize(self):
-        dt = datetime(2011, 7, 9, 13, 14, 15)
-        id = 59034
-
-        sid = SessionID(id, dt)
-        data = sid.serialize()
-
-        SessionID(123)
-
-        restored_sid = sid.unserialize(data)
-
-        self.assertEqual(sid.id, restored_sid.id)
-        self.assertEqual(sid.created, restored_sid.created)
 
 
 def create_app(store):
@@ -125,8 +105,7 @@ class TestSampleApp(unittest.TestCase):
             name, value = cookie_data.split('=')
 
             if name == self.app.session_cookie_name:
-                unsigned_value = signer.unsign(value)
-                return unsigned_value.split('_')
+                return signer.unsign(value)
 
     def get_session_cookie(self):
         return self.client.cookie_jar.\
@@ -154,14 +133,15 @@ class TestSampleApp(unittest.TestCase):
     def test_proper_cookie_received(self):
         rv = self.client.get('/store-in-session/bar/baz/')
 
-        sid, created = self.split_cookie(rv)
+        sid = self.split_cookie(rv)
+        accessed = "%s_accessed" % (sid)
 
+        # check sid and accessed in store
+        self.assertIn(sid, self.store)
+        self.assertIn(accessed, self.store)
+
+        created = self.store.get(accessed)
         self.assertNotEqual(int(created, 16), 0)
-
-        # check sid in store
-        key = '%s_%s' % (sid, created)
-
-        self.assertIn(key, self.store)
 
     def test_session_restores_properly(self):
         rv = self.client.get('/store-in-session/k1/value1/')
@@ -262,7 +242,9 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/make-session-permanent/')
 
         # assert that the session has a non-zero timestamp
-        sid, created = self.split_cookie(rv)
+        sid = self.split_cookie(rv)
+        accessed = "%s_accessed" % (sid)
+        created = self.store.get(accessed)
 
         self.assertNotEqual(0, int(created, 16))
 
@@ -297,13 +279,13 @@ class TestSampleApp(unittest.TestCase):
     def test_can_regenerate_session(self):
         self.client.get('/store-in-session/k1/value1/')
 
-        self.assertEqual(1, len(self.store.d))
+        self.assertEqual(2, len(self.store.d))
         key = self.store.d.keys()[0]
 
         # now regenerate
         self.client.get('/regenerate-session/')
 
-        self.assertEqual(1, len(self.store.d))
+        self.assertEqual(2, len(self.store.d))
         new_key = self.store.d.keys()[0]
 
         self.assertNotEqual(new_key, key)
@@ -368,7 +350,9 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/make-session-permanent/')
 
         # assert that the session has a non-zero timestamp
-        sid, created = self.split_cookie(rv)
+        sid = self.split_cookie(rv)
+        accessed = "%s_accessed" % (sid)
+        created = self.store.get(accessed)
 
         self.assertNotEqual(0, int(created, 16))
 
@@ -397,16 +381,12 @@ class TestSampleApp(unittest.TestCase):
         rv = self.client.get('/make-session-permanent/')
 
     def test_permanent_session_cookies_are_permanent(self):
-        rv = self.client.get('/store-in-session/k1/value1/')
-
-        sid, created = self.split_cookie(rv)
-
         # session cookie
+        self.client.get('/store-in-session/k1/value1/')
         self.assertIsNone(self.get_session_cookie().expires)
 
-        rv = self.client.get('/make-session-permanent/')
-
         # now it needs to be permanent
+        self.client.get('/make-session-permanent/')
         self.assertIsNotNone(self.get_session_cookie().expires)
 
     def test_new_delayed_construction(self):

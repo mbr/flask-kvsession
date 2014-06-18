@@ -57,21 +57,6 @@ class SessionID(object):
         now = now or datetime.utcnow()
         return now > self.created + lifetime
 
-    def serialize(self):
-        """Serializes to the standard form of ``KEY_CREATED``"""
-        return '%x_%x' % (self.id,
-                          calendar.timegm(self.created.utctimetuple()))
-
-    @classmethod
-    def unserialize(cls, string):
-        """Unserializes from a string.
-
-        :param string: A string created by :meth:`serialize`.
-        """
-        id_s, created_s = string.split('_')
-        return cls(int(id_s, 16),
-                   datetime.utcfromtimestamp(int(created_s, 16)))
-
 
 class KVSession(CallbackDict, SessionMixin):
     """Replacement session class.
@@ -119,6 +104,7 @@ class KVSession(CallbackDict, SessionMixin):
         if getattr(self, 'sid_s', None):
             # delete old session
             current_app.kvsession_store.delete(self.sid_s)
+            current_app.kvsession_store.delete("%s_accessed" % (self.sid_s))
 
             # remove sid_s, set modified
             self.sid_s = None
@@ -145,8 +131,14 @@ class KVSessionInterface(SessionInterface):
                     # restore the cookie, if it has been manipulated,
                     # we will find out here
                     sid_s = Signer(app.secret_key).unsign(session_cookie)
-                    sid = SessionID.unserialize(sid_s)
 
+                    # If accessed isn't here, silently ignore this and make a
+                    # a new session. This raises a KeyError
+                    sid_accessed = '%s_accessed' % (sid_s)
+                    accessed = app.kvsession_store.get(sid_accessed)
+                    accessed = datetime.utcfromtimestamp(float(accessed))
+
+                    sid = SessionID(sid_s, accessed)
                     if sid.has_expired(
                         app.config['PERMANENT_SESSION_LIFETIME']):
                         #return None  # the session has expired, no need to
@@ -155,6 +147,14 @@ class KVSessionInterface(SessionInterface):
                         # expired, but is made permanent. silently ignore the
                         # error with a new session
                         raise KeyError
+
+                    # If this isn't expired and is configured to update the
+                    # timestamp when the session is accessed, do it
+                    if self.update_accessed:
+                        now = datetime.utcnow()
+                        unix_time = calendar.timegm(now.utctimetuple())
+                        current_app.kvsession_store.put(sid_accessed,
+                                str(unix_time))
 
                     # retrieve from store
                     s = self.session_class(self.serialization_method.loads(
@@ -181,14 +181,20 @@ class KVSessionInterface(SessionInterface):
             # this makes it possible to avoid session fixation, but prevents
             # full cookie-highjacking if used carefully
             if not getattr(session, 'sid_s', None):
-                session.sid_s = SessionID(
+                sid = SessionID(
                     current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
                         app.config['SESSION_KEY_BITS']
                     )
-                ).serialize()
+                )
+                session.sid_s = str(sid.id)
+                current_app.kvsession_store.put("%s_accessed" % (session.sid_s),
+                    str(calendar.timegm(datetime.utcnow().utctimetuple())))
 
             current_app.kvsession_store.put(session.sid_s,
                            self.serialization_method.dumps(dict(session)))
+            if self.update_accessed:
+                current_app.kvsession_store.put("%s_accessed" % (session.sid_s),
+                    str(calendar.timegm(datetime.utcnow().utctimetuple())))
             session.new = False
 
             # save sid_s in session cookie
@@ -209,11 +215,21 @@ class KVSessionExtension(object):
                             `simplekv.KeyValueStore` interface that session
                             data will be store in.
     :param app: The app to activate. If not `None`, this is essentially the
-                same as calling :meth:`init_app` later."""
-    key_regex = re.compile('^[0-9a-f]+_[0-9a-f]+$')
+                same as calling :meth:`init_app` later.
+    :param track_accessed: If this is set to true, then a session timestamp
+                           will be updated whenever a session is opened, and
+                           will be considered expired if the last time this
+                           session was open is greater then
+                           PERMANENT_SESSION_LIFETIME. If this is false, then
+                           session timestamps wont be updated, and
+                           PERMANENT_SESSION_LIFETIME after the session is
+                           created, it will be expired."""
+    key_regex = re.compile('^[0-9a-f]+$')
 
-    def __init__(self, session_kvstore=None, app=None):
+    def __init__(self, session_kvstore=None, app=None,
+                 track_accessed=False):
         self.default_kvstore = session_kvstore
+        self.update_accessed = track_accessed
 
         if app and session_kvstore:
             self.init_app(app)
@@ -240,15 +256,22 @@ class KVSessionExtension(object):
             m = self.key_regex.match(key)
             now = datetime.utcnow()
             if m:
-                # read id
-                sid = SessionID.unserialize(key)
+                # pull last accessed key. If it doesn't exist delete the key
+                try:
+                    accessed = app.kvsession_store.get('%s_accessed' % (key))
+                    accessed = datetime.utcfromtimestamp(float(accessed))
+                except KeyError:
+                    app.kvsession_store.delete(key)
+                    continue
 
                 # remove if expired
+                sid = SessionID(key, accessed)
                 if sid.has_expired(
                     app.config['PERMANENT_SESSION_LIFETIME'],
                     now
                 ):
                     app.kvsession_store.delete(key)
+                    app.kvsession_store.delete("%s_accessed" % (key))
 
     def init_app(self, app, session_kvstore=None):
         """Initialize application and KVSession.
@@ -269,3 +292,4 @@ class KVSessionExtension(object):
         app.kvsession_store = session_kvstore or self.default_kvstore
 
         app.session_interface = KVSessionInterface()
+        app.session_interface.update_accessed = self.update_accessed
