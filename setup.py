@@ -16,7 +16,7 @@ def read(fname):
 setup(
     name='Flask-KVSession',
     version='0.5dev',
-    url='https://github.com/mbr',
+    url='https://github.com/mbr/flask-kvsession',
     license='MIT',
     author='Marc Brinkmann',
     author_email='git@marcbrinkmann.de',
