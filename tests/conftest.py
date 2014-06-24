@@ -9,10 +9,26 @@ from simplekv.memory import DictStore
 import pytest
 
 
-@pytest.fixture
-def store():
-    # FIXME: can we test with more backends than just DictStore?
-    return DictStore()
+@pytest.fixture(params=['dict', 'redis'])
+def store(request):
+    if request.param == 'dict':
+        return DictStore()
+    elif request.param == 'redis':
+        try:
+            import redis
+        except ImportError:
+            pytest.skip('redis library not installed')
+        try:
+            r = redis.StrictRedis()
+            r.ping()
+        except redis.exceptions.ConnectionError:
+            pytest.skip('could not connect to redis')
+
+        from simplekv.memory.redisstore import RedisStore
+        r.flushall()
+        return RedisStore(r)
+
+    assert False
 
 
 @pytest.fixture
