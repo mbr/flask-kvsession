@@ -129,8 +129,8 @@ class TestSampleApp(unittest.TestCase):
                 return unsigned_value.split('_')
 
     def get_session_cookie(self):
-        return self.client.cookie_jar.\
-                 _cookies['localhost.local']['/']['session']
+        return (self.client.cookie_jar.
+                _cookies['localhost.local']['/']['session'])
 
     def test_app_setup(self):
         pass
@@ -187,9 +187,9 @@ class TestSampleApp(unittest.TestCase):
         v_orig = cookie.value
 
         for i in xrange(len(v_orig)):
-            broken_value = v_orig[:i] +\
-                           ('a' if v_orig[i] != 'a' else 'b') +\
-                           v_orig[i + 1:]
+            broken_value = (v_orig[:i] +
+                            ('a' if v_orig[i] != 'a' else 'b') +
+                            v_orig[i + 1:])
             cookie.value = broken_value
 
             rv = self.client.get('/dump-session/')
@@ -390,11 +390,11 @@ class TestSampleApp(unittest.TestCase):
     def test_expired_made_permanent_causes_no_exception(self):
         self.app.permanent_session_lifetime = timedelta(seconds=1)
 
-        rv = self.client.get('/store-in-session/k1/value1/')
+        self.client.get('/store-in-session/k1/value1/')
 
         # sleep two seconds
         time.sleep(2)
-        rv = self.client.get('/make-session-permanent/')
+        self.client.get('/make-session-permanent/')
 
     def test_permanent_session_cookies_are_permanent(self):
         rv = self.client.get('/store-in-session/k1/value1/')
@@ -428,6 +428,7 @@ class TestSampleApp(unittest.TestCase):
         ext.init_app(app)
 
         self.assertIs(self.store, app.kvsession_store)
+
 
 class TestCookieFlags(unittest.TestCase):
     def setUp(self):
@@ -470,7 +471,6 @@ class TestCookieFlags(unittest.TestCase):
         client.get('/store-in-session/k1/value1/')
         cookie = self.get_session_cookie(client)
         self.assertEqual(cookie.has_nonstandard_attr('HttpOnly'), True)
-
 
 
 # the code below should, in theory, trigger the problem of regenerating a
