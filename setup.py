@@ -28,8 +28,6 @@ setup(
     install_requires=[
         'Flask>=0.8', 'simplekv', 'werkzeug', 'itsdangerous'
     ],
-    tests_require=tests_require,
-    test_suite='tests',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
