@@ -224,4 +224,5 @@ man_pages = [('index', 'flask-kvsession', u'Flask-KVsession Documentation',
 intersphinx_mapping = {'http://docs.python.org/': None,
                        'http://flask.pocoo.org/docs/': None,
                        'http://pythonhosted/simplekv/': None,
+                       'http://pythonhosted.org/six/': None,
                       }

@@ -82,6 +82,11 @@ API reference
 Changes
 -------
 
+Version 0.5
+~~~~~~~~~~~
+- Official Python3 support (now depends on :mod:`simplekv` >= 0.9 and
+  :mod:`six`).
+
 Version 0.4
 ~~~~~~~~~~~
 - No context is stored in the KVSessionExtension anymore. Instead, all data
