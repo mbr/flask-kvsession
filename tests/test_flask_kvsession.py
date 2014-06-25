@@ -87,11 +87,14 @@ def test_manipulation_caught(client):
                         ('a' if v_orig[i] != 'a' else 'b') +
                         v_orig[i + 1:])
         cookie.value = broken_value
+        assert broken_value != v_orig
 
         rv = client.get('/dump-session/')
         s = json_dec(rv.data)
 
-        assert s == {}
+        assert s == {}, 'manipulation check failed: %s / %s / %d' % (
+            v_orig, broken_value, i
+        )
 
     # sanity check: ensure original value still works
     cookie.value = v_orig
