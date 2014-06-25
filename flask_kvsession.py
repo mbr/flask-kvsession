@@ -97,7 +97,7 @@ class KVSession(CallbackDict, SessionMixin):
         This allows removing a session for security reasons, e.g. a login
         stored in a session will cease to exist if the session is destroyed.
         """
-        for k in self.keys():
+        for k in list(self.keys()):
             del self[k]
 
         if self.sid_s:
@@ -144,7 +144,9 @@ class KVSessionInterface(SessionInterface):
                 try:
                     # restore the cookie, if it has been manipulated,
                     # we will find out here
-                    sid_s = Signer(app.secret_key).unsign(session_cookie)
+                    sid_s = Signer(app.secret_key).unsign(
+                        session_cookie
+                    ).decode('ascii')
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(
@@ -158,8 +160,8 @@ class KVSessionInterface(SessionInterface):
 
                     # retrieve from store
                     s = self.session_class(self.serialization_method.loads(
-                        current_app.kvsession_store.get(sid_s))
-                    )
+                        current_app.kvsession_store.get(sid_s)
+                    ))
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
@@ -194,7 +196,9 @@ class KVSessionInterface(SessionInterface):
             session.new = False
 
             # save sid_s in session cookie
-            cookie_data = Signer(app.secret_key).sign(session.sid_s)
+            cookie_data = Signer(app.secret_key).sign(
+                session.sid_s.encode('ascii')
+            )
 
             response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
                                 value=cookie_data,

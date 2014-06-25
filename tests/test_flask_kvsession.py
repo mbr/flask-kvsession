@@ -6,8 +6,13 @@ import json
 import time
 
 from itsdangerous import Signer
+from six import b
 
 import pytest
+
+
+def json_dec(bs):
+    return json.loads(bs.decode('ascii'))
 
 
 def split_cookie(app, rv):
@@ -19,12 +24,13 @@ def split_cookie(app, rv):
 
         if name == app.session_cookie_name:
             unsigned_value = signer.unsign(value)
-            return unsigned_value.split('_')
+            sid, created = unsigned_value.split(b('_'))
+            return sid.decode('ascii'), int(created, 16)
 
 
 def test_app_request_no_extras(client):
     rv = client.get('/')
-    assert 'move along' in rv.data
+    assert b('move along') in rv.data
 
 
 def test_no_session_usage_uses_no_storage(store, client):
@@ -45,10 +51,10 @@ def test_proper_cookie_received(store, app, client):
 
     sid, created = split_cookie(app, rv)
 
-    assert int(created, 16) != 0
+    assert created != 0
 
     # check sid in store
-    key = '%s_%s' % (sid, created)
+    key = '%s_%x' % (sid, created)
 
     assert key in store
 
@@ -58,7 +64,7 @@ def test_session_restores_properly(client):
     client.get('/store-in-session/k2/value2/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
     assert s['k2'] == 'value2'
@@ -68,7 +74,7 @@ def test_manipulation_caught(client):
     client.get('/store-in-session/k1/value1/')
     rv = client.get('/dump-session/')
 
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
 
@@ -76,21 +82,21 @@ def test_manipulation_caught(client):
     cookie = client.get_session_cookie()
     v_orig = cookie.value
 
-    for i in xrange(len(v_orig)):
+    for i in range(len(v_orig)):
         broken_value = (v_orig[:i] +
                         ('a' if v_orig[i] != 'a' else 'b') +
                         v_orig[i + 1:])
         cookie.value = broken_value
 
         rv = client.get('/dump-session/')
-        s = json.loads(rv.data)
+        s = json_dec(rv.data)
 
         assert s == {}
 
     # sanity check: ensure original value still works
     cookie.value = v_orig
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
 
@@ -98,13 +104,13 @@ def test_manipulation_caught(client):
 def test_can_change_values(client):
     client.get('/store-in-session/k1/value1/')
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
 
     client.get('/store-in-session/k1/value2/')
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value2'
 
@@ -114,7 +120,7 @@ def test_can_delete_values(client):
     client.get('/store-in-session/k2/value2/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
     assert s['k2'] == 'value2'
@@ -122,7 +128,7 @@ def test_can_delete_values(client):
     client.get('/delete-from-session/k1/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert 'k1' not in s
     assert s['k2'] == 'value2'
@@ -133,17 +139,17 @@ def test_can_destroy_sessions(client):
     client.get('/store-in-session/k2/value2/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s['k1'] == 'value1'
     assert s['k2'] == 'value2'
 
     # destroy session
     rv = client.get('/destroy-session/')
-    assert 'session destroyed' in rv.data
+    assert b('session destroyed') in rv.data
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
 
     assert s == {}
 
@@ -155,7 +161,7 @@ def test_session_expires_without_backend_support(app, client):
     client.get('/store-in-session/k1/value1/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
     client.get('/make-session-permanent/')
@@ -163,17 +169,17 @@ def test_session_expires_without_backend_support(app, client):
     # assert that the session has a non-zero timestamp
     sid, created = split_cookie(app, rv)
 
-    assert int(created, 16) != 0
+    assert created != 0
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
     # sleep two seconds
     time.sleep(2)
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s == {}
 
 
@@ -210,7 +216,7 @@ def test_can_regenerate_session(store, client):
     assert new_key != key
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
 
@@ -231,28 +237,28 @@ def test_correct_error_reporting_with_no_secret_key(app, client):
 def test_can_store_datetime(client):
     client.get('/store-datetime/')
     rv = client.get('/dump-datetime/')
-    assert rv.data == '2011-08-10 15:46:00'
+    assert rv.data == b('2011-08-10 15:46:00')
 
 
 def test_missing_session_causes_new_empty_session(store, client):
     client.get('/store-in-session/k1/value1/')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
     store.delete(store.keys()[0])
 
     rv = client.get('/dump-session/')
-    assert rv.data == '{}'
+    assert rv.data == b('{}')
 
     rv = client.get('/is-kvsession/')
-    assert rv.data is str(True)
+    assert rv.data == b('True')
 
 
 def test_manipulated_session_causes_new_empty_session(client):
     client.get('/store-in-session/k1/value1/')
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
     cookie = client.get_session_cookie()
@@ -260,10 +266,10 @@ def test_manipulated_session_causes_new_empty_session(client):
 
     rv = client.get('/dump-session/')
 
-    assert rv.data == '{}'
+    assert rv.data == b('{}')
 
     rv = client.get('/is-kvsession/')
-    assert rv.data is str(True)
+    assert rv.data == b('True')
 
 
 def test_expired_session_causes_new_empty_session(app, client):
@@ -275,10 +281,10 @@ def test_expired_session_causes_new_empty_session(app, client):
     # assert that the session has a non-zero timestamp
     sid, created = split_cookie(app, rv)
 
-    assert int(created, 16) != 0
+    assert created != 0
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
     # sleep two seconds
@@ -286,10 +292,10 @@ def test_expired_session_causes_new_empty_session(app, client):
 
     # we should have a new session now
     rv = client.get('/is-new-session/')
-    assert str(True) == rv.data
+    assert rv.data == b('True')
 
     rv = client.get('/dump-session/')
-    s = json.loads(rv.data)
+    s = json_dec(rv.data)
     assert s == {}
 
 
