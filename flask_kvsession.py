@@ -148,7 +148,7 @@ class KVSessionInterface(SessionInterface):
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(
-                        app.config['PERMANENT_SESSION_LIFETIME']):
+                            app.config['PERMANENT_SESSION_LIFETIME']):
                         #return None  # the session has expired, no need to
                                       # check if it exists
                         # we reach this point if a "non-permanent" session has
@@ -187,8 +187,10 @@ class KVSessionInterface(SessionInterface):
                     )
                 ).serialize()
 
-            current_app.kvsession_store.put(session.sid_s,
-                           self.serialization_method.dumps(dict(session)))
+            current_app.kvsession_store.put(
+                session.sid_s,
+                self.serialization_method.dumps(dict(session))
+            )
             session.new = False
 
             # save sid_s in session cookie
