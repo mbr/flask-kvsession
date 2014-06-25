@@ -1,13 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-    flask_kvsession
-    ~~~~~~~~~~~~~~~
-
-    Drop-in replacement module for Flask sessions that uses a
-    :class:`simplekv.KeyValueStore` as a
-    backend for server-side sessions.
+flask_kvsession is a drop-in replacement module for Flask sessions that uses a
+:class:`simplekv.KeyValueStore` as a backend for server-side sessions.
 """
-
 
 import calendar
 try:

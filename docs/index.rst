@@ -1,7 +1,9 @@
 .. include:: ../README.rst
 
+
 Example use
 -----------
+
 .. code-block:: python
 
    from flask import Flask
@@ -10,7 +12,6 @@ Example use
    import redis
    from simplekv.memory.redisstore import RedisStore
 
-   # The process running Flask needs write access to this directory:
    store = RedisStore(redis.StrictRedis())
 
    app = Flask(__name__)
@@ -22,37 +23,45 @@ The snippet above will activate KVSession, from now on all session data will be
 stored in the :class:`~simplekv.KeyValueStore` supplied to the
 :class:`~flask_kvsession.KVSessionExtension` constructor.
 
+
+Expiring sessions
+-----------------
+
+Sessions will expire, but this will not cause them to be removed from the
+backend, unless the backend supports time-to-live. Backends that support the
+:class:`~simplekv.TimeToLiveMixin` interface will automatically have their
+time-to-live set, examples are :class:`~simplekv.memory.redisstore.RedisStore`
+and :class:`~simplekv.memory.memcachestore.MemcacheStore`.
+
+When using a different backend (for example, flat files through
+:class:`~simplekv.fs.FilesystemStore`),
+:meth:`~flask_kvsession.KVSessionExtension.cleanup_sessions` must be called
+periodically to remove unused sessions.
+
+
+
 Configuration
 -------------
-The following flask configuration values are honored by
-:class:`~flask_kvsession.KVSessionExtension` and
-:class:`~flask_kvsession.KVSession`:
+
+In addition to ``SESSION_COOKIE_NAME`` and ``PERMANENT_SESSION_LIFETIME`` (see Flask
+documentation), the following configuration settings are available:
 
 .. tabularcolumns:: |p{6.5cm}|p{8.5cm}|
 
 ============================== ================================================
 ``SESSION_KEY_BITS``           The size of the random integer to be used when
-                               generating random session ids through
-                               :func:`~flask_kvsession.generate_session_key`
-                               . Defaults to 64.
-``SESSION_RANDOM_SOURCE``      An object supporting
-                               :func:`random.getrandbits`, used as a random
-                               source by the module. Defaults to an instance of
+                               generating random session ids. Defaults to 64.
+``SESSION_RANDOM_SOURCE``      Random source to use, defaults to an instance of
                                :class:`random.SystemRandom`.
-``PERMANENT_SESSION_LIFETIME`` When making a session permanent through
-                               :data:`KVSession.permanent`, it will live this
-                               long (specified by a
-                               :class:`~datetime.timedelta` object).
-``SECRET_KEY``                 The Flask ``SECRET_KEY`` is used to sign session
-                               ids that are stored in cookies in the users
-                               browser to making brute-force guessing a lot
-                               harder.
-``SESSION_COOKIE_NAME``        The same cookie name as Flask's default
-                               session's is used for server-side sessions.
+``SESSION_SET_TTL``            Whether or not to set the time-to-live of the
+                               session on the backend, if supported. Default
+                               is ``True``.
 ============================== ================================================
+
 
 API reference
 -------------
+
 .. automodule:: flask_kvsession
    :members:
 
@@ -62,11 +71,15 @@ Changes
 
 Version 0.5
 ~~~~~~~~~~~
+
 - Official Python3 support (now depends on :mod:`simplekv` >= 0.9 and
   :mod:`six`).
+- Major cleanup of documentation.
+- Includes support for sessions with limited time-to-live on the backend.
 
 Version 0.4
 ~~~~~~~~~~~
+
 - No context is stored in the KVSessionExtension anymore. Instead, all data
   (including a refence to the actual store) is attached to the application.
 
@@ -78,19 +91,23 @@ Version 0.4
 
 Version 0.3.2
 ~~~~~~~~~~~~~
+
 - Hotfix: Calling session.regenerate() on the first request should no longer
   cause an exception.
 
 Version 0.3.1
 ~~~~~~~~~~~~~
+
 - Hotfix: Create empty KVSessions instead of NullSessions when a session is
   invalid or missing.
 
 Version 0.3
 ~~~~~~~~~~~
+
 - Use pickle insteaed of json as the serialization method.
 - First occurence of changelog in docs.
 
 Version 0.2
 ~~~~~~~~~~~
+
 - Complete rewrite.
