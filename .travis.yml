@@ -5,3 +5,5 @@ env:
 - TOXENV=py34
 install: pip install tox
 script: tox
+services:
+  - redis-server
