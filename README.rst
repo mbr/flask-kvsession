@@ -24,7 +24,8 @@ client.
 Flask-KVSession uses the `simplekv <http://github.com/mbr/simplekv>`_-package
 for storing session data on a variety of backends, including `redis
 <http://redis.io>`_, `memcached <http://memcached.org>`_, SQL databases using
-`SQLAlchemy <http://sqlalchemy.org>`_ or just flat files.
+`SQLAlchemy <http://sqlalchemy.org>`_, `mongoDB <http://www.mongodb.org/>`_ or
+just flat files.
 
 Integration with Flask is seamless, once the extension is loaded for a Flask
 application, it transparently replaces Flask's own Session management. Any
