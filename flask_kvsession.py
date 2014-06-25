@@ -18,11 +18,11 @@ from datetime import datetime
 from random import SystemRandom
 import re
 
-from itsdangerous import Signer, BadSignature
-from werkzeug.datastructures import CallbackDict
-
 from flask import current_app
 from flask.sessions import SessionMixin, SessionInterface
+from itsdangerous import Signer, BadSignature
+from simplekv import TimeToLiveMixin
+from werkzeug.datastructures import CallbackDict
 
 
 class SessionID(object):
@@ -189,10 +189,16 @@ class KVSessionInterface(SessionInterface):
                 ).serialize()
 
             # save the session, now its no longer new (or modified)
-            current_app.kvsession_store.put(
-                session.sid_s,
-                self.serialization_method.dumps(dict(session))
-            )
+            data = self.serialization_method.dumps(dict(session))
+            store = current_app.kvsession_store
+
+            if isinstance(store, TimeToLiveMixin):
+                # TTL is supported
+                ttl = current_app.permanent_session_lifetime.total_seconds()
+                store.put(session.sid_s, data, ttl)
+            else:
+                store.put(session.sid_s, data)
+
             session.new = False
             session.modified = False
 
