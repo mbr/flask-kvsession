@@ -1,10 +1,10 @@
 import json
 from datetime import datetime
-import types
 
 from flask import Flask, session
 from flask_kvsession import KVSessionExtension, KVSession
 from simplekv.memory import DictStore
+import six
 
 import pytest
 
@@ -38,8 +38,8 @@ def client(app):
     def get_session_cookie(self):
         return self.cookie_jar._cookies['localhost.local']['/']['session']
 
-    client.get_session_cookie = types.MethodType(
-        get_session_cookie, client, client.__class__
+    client.get_session_cookie = six.create_bound_method(
+        get_session_cookie, client,
     )
 
     return client
