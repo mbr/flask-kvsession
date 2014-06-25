@@ -175,10 +175,10 @@ class KVSessionInterface(SessionInterface):
             return s
 
     def save_session(self, app, session, response):
+        # we only save modified sessions
         if session.modified:
-            # create a new session id only if requested
-            # this makes it possible to avoid session fixation, but prevents
-            # full cookie-highjacking if used carefully
+            # create a new session id if requested (by setting sid_s to None)
+            # this makes it possible to avoid session fixation
             if not getattr(session, 'sid_s', None):
                 session.sid_s = SessionID(
                     current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
@@ -186,13 +186,15 @@ class KVSessionInterface(SessionInterface):
                     )
                 ).serialize()
 
+            # save the session, now its no longer new (or modified)
             current_app.kvsession_store.put(
                 session.sid_s,
                 self.serialization_method.dumps(dict(session))
             )
             session.new = False
+            session.modified = False
 
-            # save sid_s in session cookie
+            # save sid_s in cookie
             cookie_data = Signer(app.secret_key).sign(
                 session.sid_s.encode('ascii')
             )
