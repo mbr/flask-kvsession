@@ -103,6 +103,7 @@ class KVSession(CallbackDict, SessionMixin):
 
         if self.sid_s:
             current_app.kvsession_store.delete(self.sid_s)
+            self.sid_s = None
 
         self.modified = False
         self.new = False
