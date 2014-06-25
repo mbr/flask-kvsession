@@ -140,6 +140,8 @@ class KVSessionInterface(SessionInterface):
                 None
             )
 
+            s = None
+
             if session_cookie:
                 try:
                     # restore the cookie, if it has been manipulated,
@@ -151,8 +153,6 @@ class KVSessionInterface(SessionInterface):
 
                     if sid.has_expired(
                             app.config['PERMANENT_SESSION_LIFETIME']):
-                        #return None  # the session has expired, no need to
-                                      # check if it exists
                         # we reach this point if a "non-permanent" session has
                         # expired, but is made permanent. silently ignore the
                         # error with a new session
@@ -166,12 +166,9 @@ class KVSessionInterface(SessionInterface):
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
                     # session in the backend.
+                    pass
 
-                    # silently swallow errors, instead of of returning a
-                    # NullSession
-                    s = self.session_class()
-                    s.new = True
-            else:
+            if s is None:
                 s = self.session_class()  # create an empty session
                 s.new = True
 
