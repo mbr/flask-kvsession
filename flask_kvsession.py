@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    flaskext.kvsession
-    ~~~~~~~~~~~~~~~~~~
+    flask_kvsession
+    ~~~~~~~~~~~~~~~
 
     Drop-in replacement module for Flask sessions that uses a
     :class:`simplekv.KeyValueStore` as a
