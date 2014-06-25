@@ -114,6 +114,10 @@ def app(store):
     def is_new_session():
         return str(session.new)
 
+    @app.route('/is-modified-session/')
+    def is_modified_session():
+        return str(session.modified)
+
     @app.route('/destroy-immediately/')
     def destroy_immediately():
         # from issue

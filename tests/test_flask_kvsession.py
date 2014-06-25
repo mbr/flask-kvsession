@@ -342,3 +342,14 @@ def test_destroying_session_does_not_immediately_create_new(client, store):
 
 def test_destroying_session_immediately(client):
     client.get('/destroy-immediately/')
+
+
+def test_new_session_not_modified(client):
+    rv = client.get('/is-modified-session/')
+    assert rv.data == b('False')
+
+
+def test_existing_session_not_modified(client):
+    client.get('/store-in-session/k1/value1/')
+    rv = client.get('/is-modified-session/')
+    assert rv.data == b('False')
