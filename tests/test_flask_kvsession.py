@@ -194,14 +194,14 @@ def test_session_cleanup_works(store, app, client):
     client.get('/make-session-permanent/')
 
     # assume there is a valid session, even after cleanup
-    assert store.keys()
+    assert list(store.keys())
     app.kvsession.cleanup_sessions(app)
-    assert store.keys()
+    assert list(store.keys())
 
     time.sleep(2)
 
     app.kvsession.cleanup_sessions(app)
-    assert not store.keys()
+    assert not list(store.keys())
 
 
 def test_can_regenerate_session(store, client):
