@@ -27,7 +27,7 @@ Example use
 .. code-block:: python
 
    from flask import Flask
-   from flaskext.kvsession import KVSessionExtension
+   from flask_kvsession import KVSessionExtension
 
    import redis
    from simplekv.memory.redisstore import RedisStore
@@ -42,20 +42,20 @@ Example use
 
 The snippet above will activate KVSession, from now on all session data will be
 stored in the :class:`~simplekv.KeyValueStore` supplied to the
-:class:`~flaskext.kvsession.KVSessionExtension` constructor.
+:class:`~flask_kvsession.KVSessionExtension` constructor.
 
 Configuration
 -------------
 The following flask configuration values are honored by
-:class:`~flaskext.kvsession.KVSessionExtension` and
-:class:`~flaskext.kvsession.KVSession`:
+:class:`~flask_kvsession.KVSessionExtension` and
+:class:`~flask_kvsession.KVSession`:
 
 .. tabularcolumns:: |p{6.5cm}|p{8.5cm}|
 
 ============================== ================================================
 ``SESSION_KEY_BITS``           The size of the random integer to be used when
                                generating random session ids through
-                               :func:`~flaskext.kvsession.generate_session_key`
+                               :func:`~flask_kvsession.generate_session_key`
                                . Defaults to 64.
 ``SESSION_RANDOM_SOURCE``      An object supporting
                                :func:`random.getrandbits`, used as a random
@@ -75,7 +75,7 @@ The following flask configuration values are honored by
 
 API reference
 -------------
-.. automodule:: flaskext.kvsession
+.. automodule:: flask_kvsession
    :members:
 
 
