@@ -20,7 +20,9 @@ def redis_client(redis_app):
 def test_redis_expiration_permanent_session(
     redis, redis_store, redis_app, redis_client
 ):
-    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(seconds=300)
+    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+        seconds=TEST_TTL
+    )
 
     redis_client.get('/store-in-session/k1/v1/')
     redis_client.get('/make-session-permanent/')
@@ -35,7 +37,9 @@ def test_redis_expiration_permanent_session(
 def test_redis_expiration_ephemeral_session(
     redis, redis_store, redis_app, redis_client
 ):
-    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(seconds=300)
+    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+        seconds=TEST_TTL
+    )
 
     redis_client.get('/store-in-session/k1/v1/')
 
