@@ -114,4 +114,18 @@ def app(store):
     def is_new_session():
         return str(session.new)
 
+    @app.route('/destroy-immediately/')
+    def destroy_immediately():
+        # from issue
+        # 1. Set a session.
+        # works implicitly
+        # 2. Update session with keys.
+        session['foo'] = 'bar'
+        # 3. Destroy.
+        session.destroy()
+        # 4. Check if destroy worked.
+        # ????
+        # 5. PROFIT
+        return 'PROFIT'
+
     return app

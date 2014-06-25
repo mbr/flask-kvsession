@@ -335,3 +335,7 @@ def test_destroying_session_does_not_immediately_create_new(client, store):
 
     # now the store should be empty
     assert not list(store.keys())
+
+
+def test_destroying_session_immediately(client):
+    client.get('/destroy-immediately/')
