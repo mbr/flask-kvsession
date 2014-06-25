@@ -4,10 +4,12 @@ Flask-KVSession
 .. image:: https://travis-ci.org/mbr/flask-kvsession.svg?branch=master
            :target: https://travis-ci.org/mbr/flask-kvsession
 
-Flask-KVSession is a server-side session replacement for `Flask
-<http://flask.pocoo.org>`_'s signed client-based session management. Instead of
-storing data on the client, only a securely generated ID is stored on the
-client, while the actual session data resides on the server.
+Flask-KVSession is an `MIT-licensed
+<https://github.com/mbr/flask-kvsession/blob/master/LICENSE>`_ server-side
+session replacement for `Flask <http://flask.pocoo.org>`_'s signed
+client-based session management. Instead of storing data on the client, only a
+securely generated ID is stored on the client, while the actual session data
+resides on the server.
 
 This has two major advantages:
 
@@ -31,14 +33,8 @@ application working with sessions should work the same with Flask-KVSession
 
 
 Documentation and development
-=============================
+-----------------------------
 
-Development `happens on <https://github.com/mbr/flask-kvsession/>`_, you can
-find the `documentation on PyPI <http://pythonhosted.org/Flask-KVSession`.
-
-
-License
-=======
-
-Flask-KVSession is `MIT-licensed
-<https://github.com/mbr/flask-kvsession/blob/master/LICENSE>`_.
+Development `happens on github <https://github.com/mbr/flask-kvsession/>`_,
+you can find the `documentation on PyPI
+<http://pythonhosted.org/Flask-KVSession>`_.
