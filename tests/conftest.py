@@ -36,7 +36,7 @@ def store(request):
     if request.param == 'dict':
         return DictStore()
     elif request.param == 'redis':
-        return redis_store(redis())
+        return request.getfuncargvalue('redis_store')
 
     assert False
 
