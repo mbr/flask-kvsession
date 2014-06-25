@@ -24,15 +24,15 @@ stored in the :class:`~simplekv.KeyValueStore` supplied to the
 Expiring sessions
 -----------------
 
-Sessions will expire, but this will not cause them to be removed from the
-backend, unless the backend supports time-to-live. Backends that support the
-:class:`~simplekv.TimeToLiveMixin` interface will automatically have their
-time-to-live set, examples are :class:`~simplekv.memory.redisstore.RedisStore`
-and :class:`~simplekv.memory.memcachestore.MemcacheStore`.
+Sessions will expire, causing them to be invalid. To be automatically removed
+from the backend as well, that backend must support the
+:class:`~simplekv.TimeToLiveMixin` interface; example backends that support
+this are are :class:`~simplekv.memory.redisstore.RedisStore` and
+:class:`~simplekv.memory.memcachestore.MemcacheStore`.
 
-When using a different backend (for example, flat files through
-:class:`~simplekv.fs.FilesystemStore`),
-:meth:`~flask_kvsession.KVSessionExtension.cleanup_sessions` must be called
+When using a different backend without time-to-live support, for example flat
+files through :class:`~simplekv.fs.FilesystemStore`,
+:meth:`~flask_kvsession.KVSessionExtension.cleanup_sessions` can be called
 periodically to remove unused sessions.
 
 
