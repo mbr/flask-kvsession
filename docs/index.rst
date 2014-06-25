@@ -6,17 +6,14 @@ Example use
 
 .. code-block:: python
 
+   import redis
    from flask import Flask
    from flask_kvsession import KVSessionExtension
-
-   import redis
    from simplekv.memory.redisstore import RedisStore
 
    store = RedisStore(redis.StrictRedis())
 
    app = Flask(__name__)
-
-   # this will replace the app's session handling
    KVSessionExtension(store, app)
 
 The snippet above will activate KVSession, from now on all session data will be
