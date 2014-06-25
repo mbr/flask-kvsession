@@ -9,24 +9,34 @@ import six
 import pytest
 
 
+@pytest.fixture
+def redis():
+    try:
+        from redis import StrictRedis
+        from redis.exceptions import ConnectionError
+    except ImportError:
+        pytest.skip('redis library not installed')
+    try:
+        r = StrictRedis()
+        r.ping()
+    except ConnectionError:
+        pytest.skip('could not connect to redis')
+    r.flushall()
+    return r
+
+
+@pytest.fixture
+def redis_store(redis):
+    from simplekv.memory.redisstore import RedisStore
+    return RedisStore(redis)
+
+
 @pytest.fixture(params=['dict', 'redis'])
 def store(request):
     if request.param == 'dict':
         return DictStore()
     elif request.param == 'redis':
-        try:
-            import redis
-        except ImportError:
-            pytest.skip('redis library not installed')
-        try:
-            r = redis.StrictRedis()
-            r.ping()
-        except redis.exceptions.ConnectionError:
-            pytest.skip('could not connect to redis')
-
-        from simplekv.memory.redisstore import RedisStore
-        r.flushall()
-        return RedisStore(r)
+        return redis_store(redis())
 
     assert False
 
