@@ -87,8 +87,9 @@ class KVSession(CallbackDict, SessionMixin):
 
         CallbackDict.__init__(self, initial, _on_update)
 
-        if not initial:
-            self.modified = False
+        # we no initial data was supplied for the session, it starts out as
+        # non-modified
+        self.modified = True if initial else False
 
     def destroy(self):
         """Destroys a session completely, by deleting all keys and removing it
