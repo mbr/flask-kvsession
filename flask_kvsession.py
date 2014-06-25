@@ -228,9 +228,10 @@ class KVSessionExtension(object):
     def cleanup_sessions(self, app=None):
         """Removes all expired session from the store.
 
-        Periodically, this function should be called to remove sessions from
+        Periodically, this function can be called to remove sessions from
         the backend store that have expired, as they are not removed
-        automatically.
+        automatically unless the backend supports time-to-live and has been
+        configured appropriately (see :class:`~simplekv.TimeToLiveMixin`).
 
         This function retrieves all session keys, checks they are older than
         ``PERMANENT_SESSION_LIFETIME`` and if so, removes them.
