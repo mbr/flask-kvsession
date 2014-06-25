@@ -323,3 +323,15 @@ def test_permanent_session_cookies_are_permanent(app, client):
 
 def test_regenerate_before_session(client):
     client.get('/regenerate-session/')
+
+
+def test_destroying_session_does_not_immediately_create_new(client, store):
+    client.get('/store-in-session/k1/value1/')
+    client.get('/make-session-permanent/')
+
+    assert list(store.keys())
+
+    client.get('/destroy-session/')
+
+    # now the store should be empty
+    assert not list(store.keys())
