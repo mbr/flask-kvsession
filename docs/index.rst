@@ -84,30 +84,30 @@ Changes
 
 Version 0.4
 ~~~~~~~~~~~
-  - No context is stored in the KVSessionExtension anymore. Instead, all data
-    (including a refence to the actual store) is attached to the application.
+- No context is stored in the KVSessionExtension anymore. Instead, all data
+  (including a refence to the actual store) is attached to the application.
 
-    This means that a single KVSessionExtension can be used with multiple apps,
-    if so desired, each with its own store.
+  This means that a single KVSessionExtension can be used with multiple apps,
+  if so desired, each with its own store.
 
-  - Now requires Flask version >= 0.8, obsoleting some legacy version
-    workarounds.
+- Now requires Flask version >= 0.8, obsoleting some legacy version
+  workarounds.
 
 Version 0.3.2
 ~~~~~~~~~~~~~
-  - Hotfix: Calling session.regenerate() on the first request should no longer
-    cause an exception.
+- Hotfix: Calling session.regenerate() on the first request should no longer
+  cause an exception.
 
 Version 0.3.1
 ~~~~~~~~~~~~~
-  - Hotfix: Create empty KVSessions instead of NullSessions when a session is
-    invalid or missing.
+- Hotfix: Create empty KVSessions instead of NullSessions when a session is
+  invalid or missing.
 
 Version 0.3
 ~~~~~~~~~~~
-  - Use pickle insteaed of json as the serialization method.
-  - First occurence of changelog in docs.
+- Use pickle insteaed of json as the serialization method.
+- First occurence of changelog in docs.
 
 Version 0.2
 ~~~~~~~~~~~
-  - Complete rewrite.
+- Complete rewrite.
