@@ -82,6 +82,8 @@ def test_manipulation_caught(client):
     cookie = client.get_session_cookie()
     v_orig = cookie.value
 
+    # FIXME: this seems to break (i.e. not detect manipulation) if the
+    #        last character of v_orig is changed. possibly padding?
     for i in range(len(v_orig)):
         broken_value = (v_orig[:i] +
                         ('a' if v_orig[i] != 'a' else 'b') +
