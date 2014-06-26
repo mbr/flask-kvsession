@@ -68,6 +68,11 @@ class SessionID(object):
 
 
 class KVSession(CallbackDict, SessionMixin):
+    # modified is hardcoded as true in SessionMixin, override this
+    # upon modification, we set this manually through _on_update (see
+    # __init__)
+    modified = False
+
     """Replacement session class.
 
     Instances of this class will replace the session (and thus be available
@@ -80,10 +85,6 @@ class KVSession(CallbackDict, SessionMixin):
             d.modified = True
 
         CallbackDict.__init__(self, initial, _on_update)
-
-        # we no initial data was supplied for the session, it starts out as
-        # non-modified
-        self.modified = True if initial else False
 
     def destroy(self):
         """Destroys a session completely, by deleting all keys and removing it
