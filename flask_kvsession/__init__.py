@@ -187,7 +187,7 @@ class KVSessionInterface(SessionInterface):
             data = self.serialization_method.dumps(dict(session))
             store = current_app.kvsession_store
 
-            if isinstance(store, TimeToLiveMixin):
+            if getattr(store, 'ttl_support', False):
                 # TTL is supported
                 ttl = current_app.permanent_session_lifetime.total_seconds()
                 store.put(session.sid_s, data, ttl)
