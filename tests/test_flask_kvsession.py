@@ -167,7 +167,7 @@ def test_session_expires_without_backend_support(app, client):
     s = json_dec(rv.data)
     assert s['k1'] == 'value1'
 
-    client.get('/make-session-permanent/')
+    rv = client.get('/make-session-permanent/')
 
     # assert that the session has a non-zero timestamp
     sid, created = split_cookie(app, rv)
