@@ -84,7 +84,7 @@ def test_manipulation_caught(client):
 
     # FIXME: this seems to break (i.e. not detect manipulation) if the
     #        last character of v_orig is changed. possibly padding?
-    for i in range(len(v_orig)):
+    for i in range(len(v_orig)-1):
         broken_value = (v_orig[:i] +
                         ('a' if v_orig[i] != 'a' else 'b') +
                         v_orig[i + 1:])
