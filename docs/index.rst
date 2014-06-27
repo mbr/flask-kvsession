@@ -53,6 +53,8 @@ a Redis-database). This can be achieved using
 The decorator will transparently prefix ``sessions_`` to every session key
 stored and strip it upon retrieval.
 
+.. note:: This requires ``simplekv>=0.9.2``.
+
 
 
 Configuration
