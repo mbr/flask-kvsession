@@ -36,6 +36,24 @@ files through :class:`~simplekv.fs.FilesystemStore`,
 periodically to remove unused sessions.
 
 
+Namespacing sessions
+--------------------
+
+Occasionally, it is handy to namespace session keys (for example, when sharing
+a Redis-database). This can be achieved using
+:class:`~simplekv.decorator.PrefixDecorator`::
+
+  store = ...  # setup store normally
+  prefixed_store = PrefixDecorator('sessions_', store)
+
+  # ...
+
+  KVSessionExtension(prefixed_store, app)
+
+The decorator will transparently prefix ``sessions_`` to every session key
+stored and strip it upon retrieval.
+
+
 
 Configuration
 -------------
