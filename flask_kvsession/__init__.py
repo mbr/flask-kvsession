@@ -205,6 +205,7 @@ class KVSessionInterface(SessionInterface):
             response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
                                 value=cookie_data,
                                 expires=self.get_expiration_time(app, session),
+                                path=self.get_cookie_path(app),
                                 domain=self.get_cookie_domain(app),
                                 secure=app.config['SESSION_COOKIE_SECURE'],
                                 httponly=app.config['SESSION_COOKIE_HTTPONLY'])

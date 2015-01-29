@@ -355,3 +355,20 @@ def test_existing_session_not_modified(client):
     client.get('/store-in-session/k1/value1/')
     rv = client.get('/is-modified-session/')
     assert rv.data == b('False')
+
+
+def test_path_app_root(app, client):
+    app.config['APPLICATION_ROOT'] = '/foo'
+
+    client.get('/store-in-session/k1/value1/')
+    cookie = client.get_session_cookie('/foo')
+    assert cookie.path == '/foo'
+
+
+def test_path_session_path(app, client):
+    app.config['APPLICATION_ROOT'] = '/foo'
+    app.config['SESSION_COOKIE_PATH'] = '/bar'
+
+    client.get('/store-in-session/k1/value1/')
+    cookie = client.get_session_cookie('/bar')
+    assert cookie.path == '/bar'

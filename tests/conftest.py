@@ -45,8 +45,8 @@ def store(request):
 def client(app):
     client = app.test_client()
 
-    def get_session_cookie(self):
-        return self.cookie_jar._cookies['localhost.local']['/']['session']
+    def get_session_cookie(self, path='/'):
+        return self.cookie_jar._cookies['localhost.local'][path]['session']
 
     client.get_session_cookie = six.create_bound_method(
         get_session_cookie, client,
