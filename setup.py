@@ -26,7 +26,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'Flask>=0.8', 'simplekv>=0.9.1', 'werkzeug', 'itsdangerous>=0.20',
+        'Flask>=0.8', 'simplekv>=0.9.2', 'werkzeug', 'itsdangerous>=0.20',
         'six',
     ],
 )
