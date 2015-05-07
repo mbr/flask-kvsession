@@ -40,4 +40,4 @@ def test_issue_27(issue27app):
         for i, e in zip(range(10), expected):
             resp = c.get('/' + (i % 2 == 0 and 'test' or ''))
 
-            assert resp.data == e
+            assert resp.data.decode('utf8') == e
