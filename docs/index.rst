@@ -86,6 +86,12 @@ API reference
 Changes
 -------
 
+Version 0.6.2
+~~~~~~~~~~~~~
+
+- TTL support automatically detected
+- Various bugfixes
+
 Version 0.5
 ~~~~~~~~~~~
 
