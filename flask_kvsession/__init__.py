@@ -15,7 +15,6 @@ import re
 from flask import current_app
 from flask.sessions import SessionMixin, SessionInterface
 from itsdangerous import Signer, BadSignature
-from simplekv import TimeToLiveMixin
 from werkzeug.datastructures import CallbackDict
 
 
