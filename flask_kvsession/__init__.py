@@ -148,7 +148,7 @@ class KVSessionInterface(SessionInterface):
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(
-                            app.config['PERMANENT_SESSION_LIFETIME']):
+                            app.permanent_session_lifetime):
                         # we reach this point if a "non-permanent" session has
                         # expired, but is made permanent. silently ignore the
                         # error with a new session
@@ -254,7 +254,7 @@ class KVSessionExtension(object):
 
                 # remove if expired
                 if sid.has_expired(
-                    app.config['PERMANENT_SESSION_LIFETIME'],
+                    app.permanent_session_lifetime,
                     now
                 ):
                     app.kvsession_store.delete(key)
