@@ -234,7 +234,7 @@ class KVSessionExtension(object):
         sessions.
 
         :param app: The app whose sessions should be cleaned up. If ``None``,
-                    uses :py:attr:`flask.current_app`."""
+                    uses :py:data:`~flask.current_app`."""
 
         if not app:
             app = current_app
