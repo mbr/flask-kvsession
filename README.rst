@@ -1,9 +1,6 @@
 Flask-KVSession
 ===============
 
-.. image:: https://travis-ci.org/mbr/flask-kvsession.svg?branch=master
-           :target: https://travis-ci.org/mbr/flask-kvsession
-
 Flask-KVSession is an `MIT-licensed
 <https://github.com/mbr/flask-kvsession/blob/master/LICENSE>`_ server-side
 session replacement for `Flask <http://flask.pocoo.org>`_'s signed
