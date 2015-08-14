@@ -95,8 +95,7 @@ Version 0.6.2
 Version 0.5
 ~~~~~~~~~~~
 
-- Official Python3 support (now depends on `simplekv <http://pythonhosted.org/
-  simplekv/>`_ >= 0.9 and :mod:`six`).
+- Official Python3 support (now depends on simplekv >= 0.9 and :mod:`six`).
 - Major cleanup of documentation.
 - Includes support for sessions with limited time-to-live on the backend.
 
