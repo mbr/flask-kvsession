@@ -228,7 +228,7 @@ class KVSessionExtension(object):
         configured appropriately (see :class:`~simplekv.TimeToLiveMixin`).
 
         This function retrieves all session keys, checks they are older than
-        ``PERMANENT_SESSION_LIFETIME`` and if so, removes them.
+        :attr:`flask.Flask.permanent_session_lifetime` and if so, removes them.
 
         Note that no distinction is made between non-permanent and permanent
         sessions.
