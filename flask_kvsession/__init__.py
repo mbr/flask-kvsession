@@ -177,7 +177,12 @@ class KVSessionInterface(SessionInterface):
                         app.config['SESSION_KEY_BITS'])).serialize()
 
             # save the session, now its no longer new (or modified)
-            data = self.serialization_method.dumps(dict(session))
+            if 'SESSION_PICKLE_PROTOCOL' in current_app.config:
+                # A Pickle Protocol was specified in the Flask app configuration so we will attempt to respect it.
+                data = self.serialization_method.dumps(dict(session),
+                                                       protocol=current_app.config['SESSION_PICKLE_PROTOCOL'])
+            else:
+                data = self.serialization_method.dumps(dict(session))
             store = current_app.kvsession_store
 
             if getattr(store, 'ttl_support', False):

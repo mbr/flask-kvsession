@@ -73,6 +73,9 @@ documentation), the following configuration settings are available:
 ``SESSION_SET_TTL``            Whether or not to set the time-to-live of the
                                session on the backend, if supported. Default
                                is ``True``.
+``SESSION_PICKLE_PROTOCOL``    The Pickling protocol to be used when storing
+                               the session on the backend. Default is set to
+                               the pickle module DEFAULT_PROTOCOL.
 ============================== ================================================
 
 
