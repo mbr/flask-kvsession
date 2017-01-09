@@ -182,7 +182,9 @@ class KVSessionInterface(SessionInterface):
 
             if getattr(store, 'ttl_support', False):
                 # TTL is supported
-                ttl = current_app.permanent_session_lifetime.total_seconds()
+                #workaround for python 2.6 in timedelta.total_seconds
+                td = current_app.permanent_session_lifetime
+                ttl = td.seconds + (td.days * 24 * 3600)
                 store.put(session.sid_s, data, ttl)
             else:
                 store.put(session.sid_s, data)
