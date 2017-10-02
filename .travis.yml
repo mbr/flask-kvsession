@@ -1,8 +1,8 @@
 language: python
-env:
-- TOXENV=py27
-- TOXENV=py33
-install: pip install tox
+python:
+  - 2.7
+  - 3.3
+install: pip install tox-travis
 script: tox
 services:
   - redis-server
