@@ -9,6 +9,7 @@ try:
 except ImportError:
     import pickle
 from datetime import datetime
+import logging
 from random import SystemRandom
 import re
 
@@ -102,6 +103,7 @@ class KVSession(CallbackDict, SessionMixin):
 
         self.modified = False
         self.new = False
+        logging.getLogger("KVSession").debug("Session destroyed")
 
     def regenerate(self):
         """Generate a new session id for this session.
@@ -122,6 +124,7 @@ class KVSession(CallbackDict, SessionMixin):
             self.modified = True
 
             # save_session() will take care of saving the session now
+            logging.getLogger("KVSession").debug("Session regenerated")
 
 
 class KVSessionInterface(SessionInterface):
@@ -145,24 +148,51 @@ class KVSessionInterface(SessionInterface):
                         session_cookie).decode('ascii')
                     sid = SessionID.unserialize(sid_s)
 
-                    if sid.has_expired(app.permanent_session_lifetime):
+                    refresh = app.config["SESSION_REFRESH_EACH_REQUEST"]
+
+                    if not refresh and sid.has_expired(
+                            app.permanent_session_lifetime):
                         # we reach this point if a "non-permanent" session has
                         # expired, but is made permanent. silently ignore the
                         # error with a new session
+                        logging.getLogger("KVSession").debug(
+                            "Session expired (checked against session id)")
                         raise KeyError
 
                     # retrieve from store
-                    s = self.session_class(self.serialization_method.loads(
-                        current_app.kvsession_store.get(sid_s)))
-                    s.sid_s = sid_s
+                    try:
+                        s = self.session_class(self.serialization_method.loads(
+                                current_app.kvsession_store.get(sid_s)))
+                        s.sid_s = sid_s
+                    except:
+                        logging.getLogger("KVSession").debug(
+                            "Session not found in store")
+                        raise KeyError
+
+                    logging.getLogger("KVSession").debug("Session loaded")
+                    if "t_expire" in s:
+                        if (refresh
+                                and s.permanent
+                                and datetime.now() > s["t_expire"]):
+                            logging.getLogger("KVSession").debug(
+                                "Session expired "
+                                "(checked against stored datetime)")
+                            raise KeyError
+                        logging.getLogger("KVSession").debug(
+                            "Session will expire "
+                            "at: {0}".format(s["t_expires"]))
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
                     # session in the backend.
+                    logging.getLogger("KVSession").debug("No valid session")
                     pass
+            else:
+                logging.getLogger("KVSession").debug("No session cookie found")
 
             if s is None:
                 s = self.session_class()  # create an empty session
                 s.new = True
+                logging.getLogger("KVSession").debug("Empty session created")
 
             return s
 
@@ -175,6 +205,15 @@ class KVSessionInterface(SessionInterface):
                 session.sid_s = SessionID(
                     current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
                         app.config['SESSION_KEY_BITS'])).serialize()
+                # store expiration date
+                session["t_expires"] = (datetime.now()
+                                        + app.config["PERMANENT_SESSION_LIFETIME"])
+
+            # if SESSION_REFRESH_EACH_REQUEST is True for a permanent session,
+            # update expiration date
+            if app.config["SESSION_REFRESH_EACH_REQUEST"] and session.permanent:
+                session["t_expires"] = (datetime.now()
+                                        + app.config["PERMANENT_SESSION_LIFETIME"])
 
             # save the session, now its no longer new (or modified)
             data = self.serialization_method.dumps(dict(session))
@@ -186,6 +225,11 @@ class KVSessionInterface(SessionInterface):
                 store.put(session.sid_s, data, ttl)
             else:
                 store.put(session.sid_s, data)
+
+            logging.getLogger("KVSession").debug("Session saved")
+            if "t_expires" in session:
+                logging.getLogger("KVSession").debug(
+                    "Session will expire at: {0}".format(session["t_expires"]))
 
             session.new = False
             session.modified = False
@@ -248,6 +292,7 @@ class KVSessionExtension(object):
                 # remove if expired
                 if sid.has_expired(app.permanent_session_lifetime, now):
                     app.kvsession_store.delete(key)
+        logging.getLogger("KVSession").debug("Session store cleaned up")
 
     def init_app(self, app, session_kvstore=None):
         """Initialize application and KVSession.
