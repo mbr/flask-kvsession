@@ -128,6 +128,11 @@ class KVSessionInterface(SessionInterface):
     serialization_method = pickle
     session_class = KVSession
 
+    def _session_has_expired(self, sid, app):
+         if getattr(app.kvsession_store, 'ttl_support', False):
+            return False
+         return sid.has_expired(app.config['PERMANENT_SESSION_LIFETIME'])
+
     def open_session(self, app, request):
         key = app.secret_key
 
@@ -145,7 +150,7 @@ class KVSessionInterface(SessionInterface):
                         session_cookie).decode('ascii')
                     sid = SessionID.unserialize(sid_s)
 
-                    if sid.has_expired(app.permanent_session_lifetime):
+                    if self._session_has_expired(sid, app):
                         # we reach this point if a "non-permanent" session has
                         # expired, but is made permanent. silently ignore the
                         # error with a new session
