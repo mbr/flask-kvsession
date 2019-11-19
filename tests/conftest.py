@@ -36,13 +36,12 @@ def store(request):
     if request.param == 'dict':
         return DictStore()
     elif request.param == 'redis':
-        return request.getfuncargvalue('redis_store')
+        return request.getfixturevalue('redis_store')
 
     assert False
 
 
-@pytest.fixture
-def client(app):
+def _client(app):
     client = app.test_client()
 
     def get_session_cookie(self, path='/'):
@@ -56,7 +55,11 @@ def client(app):
 
 
 @pytest.fixture
-def app(store):
+def client(app):
+    return _client(app)
+
+
+def _app(store):
     app = Flask(__name__)
 
     app.kvsession = KVSessionExtension(store, app)
@@ -133,3 +136,8 @@ def app(store):
         return 'PROFIT'
 
     return app
+
+
+@pytest.fixture
+def app(store):
+    return _app(store)

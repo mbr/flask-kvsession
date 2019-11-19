@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from conftest import app as app_, client as client_
+from conftest import _app, _client
 import pytest
 
 
@@ -9,12 +9,12 @@ TEST_TTL = 300
 
 @pytest.fixture
 def redis_app(redis_store):
-    return app_(redis_store)
+    return _app(redis_store)
 
 
 @pytest.fixture
 def redis_client(redis_app):
-    return client_(redis_app)
+    return _client(redis_app)
 
 
 def test_redis_expiration_permanent_session(
