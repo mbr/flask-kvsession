@@ -250,6 +250,22 @@ class KVSessionExtension(object):
                 if sid.has_expired(app.permanent_session_lifetime, now):
                     app.kvsession_store.delete(key)
 
+    def clear_all_sessions(self, app=None):
+        """Removes all session from the store.
+
+        This function retrieves all session keys, removes them.
+
+        Note that no distinction is made between non-permanent and permanent
+        sessions.
+
+        :param app: The app whose sessions should be cleaned up. If ``None``,
+                    uses :py:data:`~flask.current_app`."""
+
+        if not app:
+            app = current_app
+        for key in app.kvsession_store.keys():
+            app.kvsession_store.delete(key)
+
     def init_app(self, app, session_kvstore=None):
         """Initialize application and KVSession.
 
