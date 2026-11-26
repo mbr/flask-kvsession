@@ -10,13 +10,13 @@ on:
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: '3.11'
     - name: Install pypa/build
       run: >-
         python -m
@@ -32,7 +32,7 @@ jobs:
         --outdir dist/
         .
     - name: Publish distribution 📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}

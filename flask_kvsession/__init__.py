@@ -191,8 +191,9 @@ class KVSessionInterface(SessionInterface):
             session.modified = False
 
             # save sid_s in cookie
+            # Werkzeug 3 only accepts str cookie values
             cookie_data = Signer(app.secret_key).sign(
-                session.sid_s.encode('ascii'))
+                session.sid_s.encode('ascii')).decode('ascii')
 
             response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
                                 value=cookie_data,
